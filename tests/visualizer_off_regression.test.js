@@ -174,3 +174,53 @@ test('Visualizer OFF: SHA256 parity of the touched manager mirrors', () => {
   assert.equal(hash('amv_asset_manager.js'), hash(path.join('JIZURA CIN MIX', 'amv_asset_manager.js')),
     'root and the JIZURA CIN MIX mirror must stay byte-for-byte identical');
 });
+
+/**
+ * Bug: on a FRESH load (no project, no preset picked) the preview already showed a
+ * green circle / audio-reactive layer. `renderAMVFrame()` resolved
+ *
+ *   const audioAssetId = resolvedAudioPreset ? ... : (rawAudioId || 'audio_trap_nation_pro');
+ *
+ * so whenever `rawAudioId` was null the pipeline silently substituted Trap Nation Pro
+ * and drew it on the canvas. The user had never enabled a visualizer.
+ *
+ * Fix: no implicit fallback. `audioAssetId` stays null unless a preset was explicitly
+ * selected, so the default state renders no audio-reactive layer.
+ */test('Visualizer default: a fresh load resolves NO audio-reactive preset', () => {
+  const env = boot();
+  const amv = env.AMVAssetModalAPI;
+  const state = env.ActiveAMVState;
+
+  // the default state: nothing picked, the off-flag is not set
+  assert.equal(state.activeAssets['Phản ứng âm thanh'], null,
+    'the default state must not carry an audio visualizer preset');
+  assert.equal(state.audioVisualizerOff, false,
+    'the default state is not "off", it is simply "never enabled"');
+
+  assert.equal(amv.getActiveAsset('Phản ứng âm thanh'), null,
+    'no preset may be resolved on a fresh load');
+  assert.equal(amv.hasActiveAudioVisualizer(), false,
+    'a fresh load must not report an active audio visualizer');
+
+  // the frame pipeline must not substitute Trap Nation Pro behind the user's back.
+  // Strip line comments first: the header of this file documents the old buggy line.
+  const mgrCodeOnly = amvMgrCode.replace(/^\s*\/\/.*$/gm, '');
+  assert.ok(!/rawAudioId\s*\|\|\s*'audio_trap_nation_pro'/.test(mgrCodeOnly),
+    'renderAMVFrame must not fall back to audio_trap_nation_pro when no preset is selected');
+  assert.ok(/rawAudioId\s*\|\|\s*null/.test(mgrCodeOnly),
+    'renderAMVFrame must resolve to null when no preset is selected');
+});
+
+test('Visualizer default: the frame pipeline draws no audio layer until a preset is picked', () => {
+  const env = boot();
+  const env2 = boot();
+
+  // pick a preset explicitly -> the layer must appear
+  env.AMVAssetModalAPI.turnOnAudioVisualizer('audio_trap_nation_pro');
+  assert.ok(env.AMVAssetModalAPI.getActiveAsset('Phản ứng âm thanh'),
+    'an explicitly selected preset must resolve');
+
+  // a second, untouched environment must still resolve nothing
+  assert.equal(env2.AMVAssetModalAPI.getActiveAsset('Phản ứng âm thanh'), null,
+    'an untouched environment must resolve no audio visualizer');
+});

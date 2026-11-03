@@ -2326,13 +2326,18 @@
     // IMPORTANT: no implicit fallback to 'audio_trap_nation_pro' here.
     // When the visualizer is switched OFF there must be NO audio-reactive layer at all,
     // otherwise the previous preset keeps rendering on the canvas.
+    // The same rule applies to the DEFAULT state: if the user never picked an audio
+    // visualizer preset, no circle/EQ layer may be drawn on the preview. Previously
+    // `rawAudioId || 'audio_trap_nation_pro'` silently enabled Trap Nation Pro on every
+    // fresh load, which is why a green circle showed up in the preview out of the box.
     const audioVisualizerDisabled = state.audioVisualizerOff === true;
     const resolvedAudioPreset = rawAudioId && lib
       ? (lib.get(rawAudioId) || (audioVisualizerDisabled ? null : lib.get('audio_trap_nation_pro')))
       : null;
+    // null => no audio-reactive layer at all. Only an explicitly selected preset may draw.
     const audioAssetId = audioVisualizerDisabled
       ? null
-      : (resolvedAudioPreset ? resolvedAudioPreset.id : (rawAudioId || 'audio_trap_nation_pro'));
+      : (resolvedAudioPreset ? resolvedAudioPreset.id : (rawAudioId || null));
 
     const mainCut = (window.J && window.J.cutAt) ? window.J.cutAt(plan, t) : null;
     const st = plan && plan.style;
