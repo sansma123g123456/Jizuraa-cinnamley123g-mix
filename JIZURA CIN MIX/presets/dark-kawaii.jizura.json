@@ -1,0 +1,27 @@
+{
+  "format": "jizura-preset",
+  "version": "2.0",
+  "name": "Kawaii 3D Dark (Mặc định)",
+  "timestamp": 1729780000000,
+  "theme": {
+    "style": "dark-kawaii"
+  },
+  "visualizer": {
+    "enabled": true,
+    "style": "galaxy_orbit",
+    "colorMode": "theme"
+  },
+  "camera": {
+    "aspect": "16:9",
+    "config": {
+      "parallax3D": true,
+      "beatImpact": true,
+      "sandwichDepth": true,
+      "motionBlur": false,
+      "dofBokeh": false
+    }
+  },
+  "lrcTreat": "liquidFillGlow",
+  "style": "anime",
+  "mood": "dreamy"
+}

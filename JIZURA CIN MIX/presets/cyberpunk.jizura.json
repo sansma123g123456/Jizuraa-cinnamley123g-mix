@@ -1,0 +1,25 @@
+{
+  "format": "jizura-preset",
+  "version": "2.0",
+  "name": "Cyberpunk Neon 3D",
+  "timestamp": 1729780000000,
+  "theme": {
+    "style": "dark-blue-kawaii"
+  },
+  "visualizer": {
+    "enabled": true,
+    "style": "cyber_ribbon_3d",
+    "colorMode": "theme"
+  },
+  "camera": {
+    "aspect": "16:9",
+    "config": {
+      "parallax3D": true,
+      "beatImpact": true,
+      "dofBokeh": true
+    }
+  },
+  "lrcTreat": "perspective3DFlip",
+  "style": "cyber",
+  "mood": "fast"
+}

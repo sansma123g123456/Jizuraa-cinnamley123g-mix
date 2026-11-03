@@ -1,0 +1,23 @@
+---
+description: Technique API — đọc docs/TECHNIQUE_API.md trước khi sửa engine JIZURA.
+globs:
+alwaysApply: true
+---
+
+Khi làm việc với native technique registry của JIZURA (`J.register(group, key, def, pack)` trong `index.html`), **đọc `docs/TECHNIQUE_API.md` trước** thay vì đọc lại `index.html` (~56k dòng).
+
+File đó là nguồn sự thật duy nhất về:
+- Signature chính xác của 10 nhóm (`layout/enter/hold/exit/decor/treat/bg/cam/fx/trans`)
+- Hợp đồng `env`, `it`, `charFn`, `pieceFn`
+- Yêu cầu để thumbnail preview hiển thị đúng
+- Audio-reactive helpers (`getKickShake`, `getBassBloom`, `getPianoRipple`, `SmartSectionAPI.getDropImpactMultiplier`)
+- Bất biến: đúng **12 thẻ `<script>`**, `J.CORE_ORDER` đóng băng, SHA256 parity cho `amv_asset_manager.js`
+
+Bất biến bắt buộc khi thêm technique:
+1. `index.html` phải giữ **đúng 12** thẻ `<script>`.
+2. Mọi kỹ thuật mới phải có ở **cả** `index.html` và `JIZURA CIN MIX/index.html`.
+3. `node --test --test-concurrency=1 tests/*.test.js` phải **408 pass / 0 fail** (22 suite).
+4. Rebuild `JIZURA-CIN-MIX.zip` sau khi sửa `JIZURA CIN MIX/` (dùng `node tools/pack_zip.mjs`).
+5. Sau khi sửa file gốc ở root, chạy `node tools/sync_all_mirrors.mjs` để đồng bộ `public/`, `cloudflare_dist/`, `JIZURA CIN MIX/`.
+
+Không thêm feature vào hệ thống AMV add-on (`amv_asset_library.js` / `amv_asset_manager.js`) khi người dùng yêu cầu thêm kỹ thuật native.

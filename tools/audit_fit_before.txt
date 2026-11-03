@@ -1,0 +1,559 @@
+﻿### center
+  vn8       OVER:L                 textbb=60,425,1673,710 main=285.7
+### marquee
+  vn1       OVER:LR                textbb=-2111,181,3395,899 main=324.0
+  vn4       OVER:LR                textbb=-1933,181,3303,899 main=324.0
+  vn8       OVER:LR                textbb=-1810,256,3893,824 main=256.5
+### tile
+  vn1       OVER:LRTB              textbb=-134,9,3393,1138 main=324.0
+  vn4       OVER:LRTB              textbb=-134,9,3393,1138 main=324.0
+  vn8       OVER:LRTB              textbb=-256,9,3466,1138 main=310.3
+### wave
+  vn8       OVER:L                 textbb=-21,366,1591,703 main=172.8
+  vn12      OVER:L                 textbb=56,401,1600,669 main=98.7
+  jp13      OVER:L                 textbb=0,377,1630,700 main=106.3
+### labels
+  vn1       OVER:LT                textbb=-36,-54,36,54 main=0.0
+  vn4       OVER:LT                textbb=-32,-58,32,58 main=0.0
+  vn8       OVER:LT                textbb=-249,-54,249,54 main=0.0
+  vn12      OVER:LT                textbb=-270,-33,270,33 main=0.0
+  jp13      OVER:LT                textbb=-33,-33,33,33 main=0.0
+### condensed
+  vn1       OVER:LR                textbb=94,210,1826,870 main=519.2
+  vn4       OVER:LR                textbb=94,308,1826,772 main=409.5
+### gloss
+  vn1       deco:21                textbb=469,277,1391,713 main=259.2
+  vn4       OVER:LRTB deco:21      textbb=-1218,32,3138,1048 main=259.2
+  vn8       OVER:LRTB deco:21      textbb=-3269,32,5189,1048 main=197.1
+### type
+  vn1       deco:20                textbb=250,481,535,874 main=118.8
+  vn4       deco:20                textbb=250,481,1103,874 main=118.8
+  vn8       deco:20                textbb=117,481,857,874 main=118.8
+  vn12      deco:20                textbb=250,400,1264,874 main=118.8
+  vn16      deco:20                textbb=117,400,958,874 main=118.8
+  vn20      deco:20                textbb=250,400,1393,874 main=118.8
+  vn24      deco:20                textbb=250,346,876,874 main=105.1
+  vn28      deco:20                textbb=132,346,1016,874 main=105.1
+  jp13      deco:20                textbb=250,488,1670,874 main=103.6
+  en20      deco:20                textbb=250,346,1288,874 main=105.1
+### diag
+  vn1       OVER:LR                textbb=-3178,298,2871,648 main=216.0
+  vn4       OVER:LR                textbb=-3178,298,2871,648 main=216.0
+  vn8       OVER:LR                textbb=-3071,298,2764,648 main=216.0
+  vn12      OVER:LR                textbb=-3233,207,2947,615 main=149.8
+### hrWallScrawl
+  vn1       OVER:LRT               textbb=73,1,1924,648 main=216.0
+  vn4       OVER:LRT               textbb=74,1,1846,648 main=216.0
+  vn8       OVER:LT                textbb=76,0,1713,648 main=216.0
+  vn12      OVER:LT                textbb=74,1,1570,702 main=154.3
+  jp13      OVER:LT                textbb=75,10,1519,702 main=154.3
+### hrCctv
+  vn1       OVER:LRTB deco:17      textbb=48,46,1872,1035 main=151.5
+  vn4       OVER:LRTB deco:17      textbb=48,46,1872,1035 main=151.5
+  vn8       OVER:LRTB deco:17      textbb=48,46,1872,1035 main=105.6
+  vn12      OVER:LRTB deco:17      textbb=48,46,1872,1035 main=68.3
+  vn16      OVER:LRTB deco:17      textbb=48,46,1872,1035 main=68.3
+  jp13      OVER:LRTB deco:18      textbb=51,49,1869,1032 main=208.4
+### hrMissing
+  vn1       OVER:LT deco:14        textbb=-246,-451,992,802 main=112.0
+  vn4       OVER:LT deco:14        textbb=-246,-451,1095,802 main=112.0
+  vn8       OVER:LT deco:14        textbb=-246,-451,1092,809 main=60.2
+  vn12      OVER:LT deco:14        textbb=-246,-451,1048,809 main=39.5
+  jp13      OVER:LT deco:14        textbb=-246,-451,1209,809 main=60.2
+### hrRedacted
+  vn12      OVER:R                 textbb=230,74,2071,812 main=102.8
+  vn16      OVER:R                 textbb=230,74,2445,812 main=102.8
+  vn20      OVER:R                 textbb=230,74,2824,812 main=102.8
+  jp13      OVER:R                 textbb=230,74,2864,812 main=102.8
+### knQuarterTurn
+  vn8       OVER:L                 textbb=29,378,1316,992 main=324.0
+  vn12      OVER:LB                textbb=-173,371,1257,1373 main=307.2
+  jp13      OVER:LB                textbb=-566,378,1623,1203 main=324.0
+### knSwapCenter
+  vn12      OVER:L                 textbb=-230,356,1173,724 main=367.2
+### knZoomDive
+  vn12      OVER:LRTB              textbb=-469,-8,1909,1088 main=1095.8
+### knFlowSnap
+  jp13      OVER:LR                textbb=53,346,1867,727 main=123.7
+### knTypeSlam
+  vn12      OVER:LRT               textbb=-95,-13,2015,925 main=937.8
+### knTumble
+  jp13      OVER:R                 textbb=173,420,2482,597 main=114.1
+### knReflow
+  vn1       OVER:B                 textbb=821,61,1061,1061 main=369.2
+  vn4       OVER:TB                textbb=838,45,1082,1061 main=369.2
+### gridCells
+  jp13      deco:21                textbb=147,328,1748,731 main=132.8
+### justified
+  vn1       deco:19                textbb=154,57,1766,1023 main=231.6
+  vn4       OVER:TB deco:21        textbb=154,54,1766,1026 main=250.9
+  vn8       OVER:TB deco:21        textbb=154,54,1766,1026 main=191.9
+  vn12      OVER:TB                textbb=154,50,1766,1030 main=177.8
+  vn16      deco:19                textbb=154,57,1766,1023 main=145.4
+  vn20      OVER:TB                textbb=154,50,1766,1030 main=193.2
+  jp13      OVER:TB deco:21        textbb=154,54,1766,1026 main=119.6
+### subtitleBar
+  vn1       OVER:B                 textbb=96,59,1824,1041 main=62.6
+  vn4       OVER:T                 textbb=115,53,1824,895 main=62.6
+  vn8       OVER:LRTB              textbb=53,43,1858,1057 main=62.6
+  vn12      OVER:LRT               textbb=62,46,1867,908 main=62.6
+  vn16      OVER:LRT               textbb=53,48,1858,905 main=62.6
+  vn20      OVER:LRTB              textbb=53,49,1858,1051 main=62.6
+  vn24      OVER:LRB               textbb=62,56,1867,1043 main=62.6
+  jp13      OVER:LRTB              textbb=62,46,1867,1054 main=62.6
+  en20      OVER:LRB               textbb=62,54,1867,1045 main=62.6
+### ticker
+  vn1       OVER:R                 textbb=98,65,2817,966 main=216.0
+  vn4       OVER:R                 textbb=131,65,2795,966 main=216.0
+  vn8       OVER:LR                textbb=32,65,2938,966 main=216.0
+  vn12      OVER:LR                textbb=29,355,3265,966 main=216.0
+  vn16      OVER:LR                textbb=94,355,3406,966 main=216.0
+  jp13      OVER:LR                textbb=27,65,3466,966 main=196.4
+### sideways
+  vn1       OVER:LT                textbb=-369,-162,914,972 main=324.0
+  vn4       OVER:LT                textbb=-369,-162,484,972 main=324.0
+  vn8       OVER:LT                textbb=-325,-288,1066,972 main=285.1
+  vn12      OVER:LT                textbb=-475,-200,1096,972 main=198.4
+  jp13      OVER:LT                textbb=-475,-118,1178,972 main=116.8
+### edgeFrame
+  vn1       OVER:LRT               textbb=-83,-13,1984,659 main=237.6
+  vn4       OVER:LRT               textbb=-84,-13,1959,659 main=237.6
+  vn8       OVER:LRT               textbb=-144,-13,2147,659 main=237.6
+  vn12      OVER:LRT               textbb=-282,-13,2390,795 main=237.6
+  jp13      OVER:LRT               textbb=-73,-13,2584,719 main=167.0
+### perspective
+  vn4       deco:16                textbb=505,177,1594,896 main=194.4
+  vn12      deco:8                 textbb=684,147,1236,856 main=113.1
+  jp13      deco:11                textbb=313,177,1655,856 main=113.1
+### hanko
+  vn1       OVER:LT                textbb=-92,-120,1008,632 main=183.6
+  vn4       OVER:LT                textbb=-92,-120,1008,632 main=183.6
+  vn8       OVER:LT                textbb=-29,-54,1135,624 main=94.5
+### genkou
+  vn1       deco:17                textbb=430,131,1490,993 main=96.3
+  vn4       deco:17                textbb=274,251,1646,993 main=96.3
+  vn8       deco:12                textbb=699,211,1221,984 main=67.4
+  vn12      deco:17                textbb=196,131,1724,993 main=96.3
+  vn16      deco:13                textbb=609,128,1311,986 main=74.9
+  vn20      deco:12                textbb=425,127,1495,984 main=67.4
+  jp13      deco:17                textbb=352,131,1568,993 main=96.3
+### filmstrip
+  vn1       OVER:LR                textbb=-489,327,1852,635 main=190.3
+  vn8       OVER:LR                textbb=-502,327,1839,635 main=190.3
+### quote
+  vn12      OVER:B                 textbb=133,258,1787,1040 main=172.8
+  jp13      OVER:LR                textbb=23,311,1897,815 main=143.8
+### searchBar
+  vn1       OVER:B                 textbb=493,359,832,1052 main=102.6
+### ticket
+  vn1       OVER:LT                textbb=-646,-213,648,211 main=162.0
+  vn4       OVER:LT                textbb=-646,-213,648,211 main=162.0
+  vn8       OVER:LT                textbb=-646,-213,648,211 main=162.0
+  vn12      OVER:LT                textbb=-646,-213,648,211 main=113.1
+  vn16      OVER:LT                textbb=-646,-213,648,211 main=113.1
+  jp13      OVER:LT                textbb=-646,-213,648,211 main=113.1
+### rain
+  vn1       OVER:LRTB              textbb=13,-47,1907,1083 main=259.2
+  vn4       OVER:LTB               textbb=13,-98,1674,1083 main=162.0
+  vn8       OVER:LRTB              textbb=13,-47,1907,1083 main=259.2
+  vn12      OVER:LRTB              textbb=13,5,1907,1083 main=154.3
+  jp13      OVER:LRTB              textbb=13,5,1907,1083 main=212.2
+### tunnel
+  vn1       OVER:LRTB              textbb=-982,-202,2894,1282 main=172.8
+  vn4       OVER:LRTB              textbb=-502,-60,2530,1140 main=172.8
+  vn8       OVER:LRTB              textbb=-580,-44,2490,1124 main=172.8
+  vn12      OVER:LRTB              textbb=-410,24,2318,1056 main=85.1
+  jp13      OVER:LRTB              textbb=-379,25,2299,1055 main=130.6
+### wordCloud
+  vn1       deco:19                textbb=186,162,1665,936 main=194.4
+  vn4       deco:19                textbb=186,162,1665,936 main=194.4
+  vn8       deco:11                textbb=110,97,1820,1004 main=194.4
+  vn12      deco:19                textbb=293,200,1630,880 main=81.0
+  jp13      deco:20                textbb=242,135,1693,969 main=123.4
+### crossBands
+  vn1       OVER:LRT               textbb=-1699,-26,2109,632 main=183.6
+  vn4       OVER:LRT               textbb=-1717,-26,2239,632 main=183.6
+  vn8       OVER:LRT               textbb=-1832,-26,2320,632 main=183.6
+  vn12      OVER:LRT               textbb=-2062,-26,3044,670 main=80.0
+  jp13      OVER:LRT               textbb=-2284,-26,3577,670 main=122.3
+### stickerBomb
+  vn1       OVER:LT                textbb=-237,-103,237,103 main=205.2
+  vn4       OVER:LT                textbb=-237,-103,237,103 main=205.2
+  vn8       OVER:LT                textbb=-480,-99,480,99 main=197.1
+### keycaps
+  vn1       OVER:LT                textbb=-92,-116,1487,630 main=146.0
+### slotMachine
+  vn1       OVER:TB                textbb=442,-28,1478,1108 main=181.4
+  vn4       OVER:TB                textbb=442,-28,1478,1108 main=181.4
+### credits
+  vn1       OVER:T deco:20         textbb=753,21,1185,1018 main=172.8
+  vn4       OVER:TB deco:20        textbb=753,50,1185,1047 main=172.8
+  vn8       deco:17                textbb=518,142,1402,902 main=172.8
+  vn12      OVER:T deco:20         textbb=801,17,1267,1014 main=82.6
+  jp13      OVER:TB deco:17        textbb=490,9,1430,1027 main=127.6
+### zoomRepeat
+  vn1       OVER:LRTB              textbb=-1373,-470,3293,1550 main=216.0
+  vn4       OVER:LRTB              textbb=-1769,-641,3689,1721 main=216.0
+  vn8       OVER:LRTB              textbb=-4749,-632,6669,1712 main=216.0
+### circleWords
+  vn1       OVER:TB                textbb=445,25,1475,1055 main=187.7
+  vn4       OVER:TB                textbb=445,25,1475,1055 main=187.7
+  vn8       OVER:TB                textbb=445,25,1475,1055 main=170.6
+  vn12      OVER:TB                textbb=454,25,1472,1055 main=83.3
+  jp13      OVER:TB                textbb=449,29,1471,1051 main=118.7
+### typeSpecimen
+  vn1       deco:18                textbb=134,119,1551,852 main=258.9
+  vn4       deco:18                textbb=134,119,726,946 main=259.3
+  vn8       deco:18                textbb=134,119,1759,900 main=205.6
+### kanjiFocus
+  vn1       OVER:TB                textbb=207,-20,1297,1100 main=81.0
+  vn4       OVER:TB                textbb=207,-20,1297,1100 main=81.0
+  vn8       OVER:TB                textbb=497,-20,1713,1100 main=81.0
+  vn12      OVER:TB                textbb=307,-20,1713,1100 main=79.2
+  jp13      OVER:LTB               textbb=16,-20,1613,1100 main=57.5
+### curtain
+  vn4       deco:19                textbb=96,55,1216,648 main=216.0
+  vn8       deco:19                textbb=96,55,1503,648 main=216.0
+  vn12      deco:19                textbb=96,55,1171,724 main=111.3
+### tape
+  vn1       OVER:T                 textbb=105,-92,582,92 main=183.6
+  vn4       OVER:T                 textbb=105,-92,582,92 main=183.6
+  vn8       OVER:T                 textbb=105,-92,1070,92 main=183.6
+  vn12      OVER:LT                textbb=77,-64,561,64 main=127.5
+  jp13      OVER:T                 textbb=110,-92,1450,92 main=183.6
+### magazine
+  vn1       OVER:L deco:14         textbb=65,154,737,971 main=162.0
+  vn4       OVER:L deco:14         textbb=65,154,737,971 main=162.0
+  vn8       OVER:L deco:14         textbb=65,95,921,971 main=162.0
+  vn12      OVER:L deco:14         textbb=65,95,921,971 main=119.0
+  vn16      OVER:L deco:14         textbb=65,95,921,971 main=119.0
+  jp13      OVER:L deco:14         textbb=65,95,1029,971 main=102.9
+### headlineDeck
+  vn12      OVER:R                 textbb=144,277,1875,757 main=215.2
+### footnote
+  vn1       OVER:B deco:21         textbb=173,54,1747,1042 main=183.6
+  vn4       OVER:B deco:21         textbb=173,392,1007,1042 main=183.6
+  vn8       OVER:B deco:21         textbb=173,54,1747,1042 main=183.6
+  vn12      OVER:B deco:21         textbb=173,54,1747,1042 main=183.6
+  vn16      OVER:B deco:21         textbb=173,54,1747,1042 main=183.6
+  vn20      OVER:B deco:21         textbb=173,227,1596,1042 main=183.6
+  jp13      OVER:B deco:21         textbb=173,245,1614,1042 main=168.8
+### poster
+  vn1       deco:21                textbb=134,76,1786,980 main=746.7
+  vn4       deco:21                textbb=134,76,1786,980 main=746.7
+  vn8       deco:21                textbb=134,76,1786,980 main=383.1
+  vn12      deco:21                textbb=134,76,1786,980 main=219.9
+  jp13      deco:21                textbb=134,76,1786,980 main=266.6
+### swissGrid
+  vn1       OVER:LT deco:18        textbb=-211,51,1582,551 main=302.4
+  vn4       OVER:LT deco:18        textbb=-211,51,1582,551 main=302.4
+  vn8       OVER:LT deco:18        textbb=-211,51,1582,842 main=302.4
+  vn12      OVER:LT deco:18        textbb=-211,51,1662,829 main=195.0
+  vn16      OVER:LT deco:18        textbb=-211,51,1646,829 main=195.0
+  jp13      OVER:LRT deco:18       textbb=-211,51,1827,801 main=195.0
+### dictionary
+  vn1       OVER:RT deco:19        textbb=176,46,1896,930 main=183.6
+  vn4       OVER:RT deco:19        textbb=176,46,1896,930 main=183.6
+  vn8       OVER:RT deco:19        textbb=176,46,1896,930 main=183.6
+  vn12      OVER:RT deco:19        textbb=178,46,1896,948 main=154.3
+  jp13      OVER:RT deco:19        textbb=180,46,1905,719 main=130.8
+### ema
+  vn1       OVER:LT deco:21        textbb=-233,-192,428,296 main=204.1
+  vn4       OVER:LT deco:21        textbb=-233,-192,428,296 main=204.1
+  vn8       OVER:LT deco:21        textbb=-408,-192,428,296 main=170.5
+  vn12      OVER:LT deco:21        textbb=-329,-192,428,296 main=137.3
+  jp13      OVER:LT deco:21        textbb=-408,-192,428,296 main=100.3
+### ransom
+  vn1       OVER:LT                textbb=-91,-145,91,157 main=301.4
+  vn4       OVER:LT                textbb=-84,-155,84,168 main=322.6
+  vn8       OVER:LT                textbb=-89,-140,89,152 main=291.7
+  vn12      OVER:LT                textbb=-51,-80,51,86 main=166.3
+  jp13      OVER:LT                textbb=-113,-108,113,117 main=225.0
+### newspaper
+  vn1       deco:18                textbb=505,71,1665,419 main=261.3
+  vn4       deco:18                textbb=505,71,1665,419 main=261.3
+  vn8       deco:18                textbb=204,71,1665,419 main=261.3
+  vn12      deco:18                textbb=104,71,1665,419 main=168.5
+  jp13      deco:18                textbb=1273,71,1665,881 main=101.8
+### vinyl
+  vn1       OVER:LT deco:13        textbb=-117,-120,1080,894 main=239.8
+  vn4       OVER:LT deco:16        textbb=-205,-208,204,68 main=130.7
+  vn8       OVER:LT deco:13        textbb=-117,-120,1080,894 main=202.7
+  vn12      OVER:LT deco:13        textbb=-117,-120,1080,894 main=145.9
+  jp13      OVER:LT deco:13        textbb=-117,-120,1080,894 main=134.1
+### cassette
+  vn1       OVER:LT deco:19        textbb=-488,-281,524,120 main=159.1
+  vn4       OVER:LT deco:19        textbb=-488,-281,524,120 main=159.1
+  vn8       OVER:LT deco:19        textbb=-488,-281,524,120 main=159.1
+  vn12      OVER:LT deco:19        textbb=-488,-326,524,120 main=111.6
+  jp13      OVER:LT deco:19        textbb=-488,-316,524,120 main=106.8
+### polaroid
+  vn1       OVER:LT                textbb=-239,-180,239,364 main=215.4
+  vn4       OVER:LT                textbb=-239,-180,239,364 main=215.4
+  vn8       OVER:LT                textbb=-239,-180,239,364 main=215.4
+  vn12      OVER:LT                textbb=-199,-244,199,302 main=179.0
+  jp13      OVER:LT                textbb=-221,-244,221,302 main=175.5
+### stampSheet
+  vn1       OVER:LT deco:21        textbb=-314,-193,1415,759 main=171.4
+  vn4       OVER:LT deco:21        textbb=-314,-193,1434,759 main=171.4
+  vn8       OVER:LT deco:21        textbb=-314,-193,1434,759 main=135.7
+### postcard
+  vn1       OVER:LT                textbb=-562,-395,547,151 main=127.1
+  vn4       OVER:LT                textbb=-562,-395,547,151 main=127.1
+  vn8       OVER:LT                textbb=-562,-395,547,151 main=127.1
+  vn12      OVER:LT                textbb=-562,-395,550,151 main=127.1
+  vn16      OVER:LT                textbb=-562,-395,547,273 main=127.1
+  jp13      OVER:LT                textbb=-562,-395,547,273 main=127.1
+### calendar
+  vn1       deco:21                textbb=154,58,1676,916 main=216.0
+  jp13      OVER:L deco:21         textbb=81,58,1676,916 main=145.3
+### routeMap
+  vn1       OVER:L deco:19         textbb=70,359,1120,696 main=140.4
+  vn4       OVER:L deco:19         textbb=70,359,1120,696 main=140.4
+  vn8       OVER:L deco:19         textbb=70,165,1640,915 main=140.4
+  vn12      OVER:L deco:19         textbb=70,359,1802,807 main=140.4
+  vn16      OVER:LR deco:19        textbb=70,173,1843,907 main=132.1
+  jp13      OVER:LR deco:19        textbb=70,359,1831,840 main=140.4
+### noren
+  vn1       OVER:L                 textbb=-112,292,112,440 main=223.3
+  vn4       OVER:L                 textbb=-112,333,112,480 main=223.3
+  vn8       OVER:L                 textbb=-69,120,69,558 main=138.4
+### tanzaku
+  vn1       OVER:L                 textbb=-55,156,55,421 main=110.6
+  vn4       OVER:L                 textbb=-55,156,55,421 main=110.6
+  vn8       OVER:L                 textbb=-55,156,55,536 main=110.6
+  vn12      OVER:L                 textbb=-44,111,44,546 main=87.7
+  jp13      OVER:L                 textbb=-49,120,49,632 main=97.7
+### clapper
+  vn1       OVER:LT deco:19        textbb=-494,-295,304,269 main=193.2
+  vn4       OVER:LT deco:19        textbb=-494,-295,304,269 main=193.2
+  vn8       OVER:LT deco:19        textbb=-494,-295,412,269 main=193.2
+  vn12      OVER:LT deco:19        textbb=-494,-295,304,269 main=134.9
+  jp13      OVER:LT deco:19        textbb=-494,-295,504,269 main=123.4
+### warningLabel
+  vn1       OVER:LT deco:21        textbb=-467,-318,723,361 main=216.0
+  vn4       OVER:LT                textbb=-301,-67,301,241 main=197.7
+  vn8       OVER:LT deco:21        textbb=-517,-318,723,361 main=216.0
+  vn12      OVER:LT                textbb=-644,-67,644,216 main=147.2
+  jp13      OVER:LT deco:21        textbb=-644,-318,723,361 main=158.2
+### priceTag
+  vn1       OVER:L                 textbb=-165,318,165,795 main=149.0
+  vn4       OVER:L                 textbb=-165,318,165,795 main=149.0
+  vn8       OVER:L                 textbb=-154,248,154,795 main=138.5
+  vn12      OVER:L                 textbb=-199,303,199,795 main=85.8
+  jp13      OVER:L                 textbb=-199,267,199,795 main=79.5
+### nameTag
+  vn1       OVER:LT                textbb=-314,-360,314,212 main=282.8
+  vn4       OVER:LT                textbb=-314,-360,314,212 main=282.8
+  vn8       OVER:LT                textbb=-500,-360,500,179 main=216.0
+  vn12      OVER:LT                textbb=-500,-233,331,253 main=143.1
+  jp13      OVER:LT                textbb=-500,-360,500,199 main=125.0
+### stickyNotes
+  vn1       OVER:LT                textbb=-268,-94,268,147 main=241.1
+  vn4       OVER:LT                textbb=-268,-94,268,147 main=241.1
+  vn8       OVER:LT                textbb=-268,-94,268,147 main=241.1
+  vn12      OVER:LT                textbb=-211,-148,211,190 main=189.7
+  vn16      OVER:LT                textbb=-158,-111,158,142 main=142.3
+  jp13      OVER:LT                textbb=-227,-159,227,204 main=171.2
+### karuta
+  vn1       OVER:LT                textbb=-93,-364,243,221 main=186.6
+  vn4       OVER:LT                textbb=-93,-364,243,221 main=186.6
+  vn8       OVER:LT                textbb=-215,-364,243,298 main=186.6
+  vn12      OVER:LT                textbb=-224,-364,243,305 main=124.4
+  jp13      OVER:LT                textbb=-144,-326,205,345 main=80.0
+### cube
+  vn1       OVER:LT                textbb=-252,-111,252,111 main=221.4
+  vn4       OVER:LT                textbb=-252,-111,252,111 main=221.4
+  vn8       OVER:LT                textbb=-248,-231,248,231 main=217.8
+  vn12      OVER:LT                textbb=-248,-231,248,231 main=217.8
+  jp13      OVER:LT                textbb=-252,-176,252,176 main=166.0
+### cylinder
+  vn1       OVER:LT                textbb=-68,-103,1431,873 main=205.2
+  vn4       OVER:LT                textbb=-68,-103,1430,775 main=205.2
+  vn8       OVER:LT                textbb=-65,-98,1428,765 main=196.1
+  vn12      OVER:LT                textbb=-53,-81,1425,921 main=162.0
+  jp13      OVER:LT                textbb=-57,-57,1427,754 main=114.5
+### flipCards
+  vn1       OVER:LT                textbb=-56,-84,56,84 main=168.5
+  vn4       OVER:LT                textbb=-109,-161,109,161 main=168.5
+  vn8       OVER:LT                textbb=-60,-89,60,89 main=92.9
+  vn12      OVER:LT                textbb=-31,-46,31,46 main=92.9
+  jp13      OVER:LT                textbb=-75,-104,75,104 main=108.6
+### accordion
+  vn1       OVER:LT                textbb=-71,-107,71,107 main=213.8
+  vn4       OVER:LT                textbb=-71,-107,71,107 main=213.8
+  vn8       OVER:LT                textbb=-43,-65,43,65 main=129.8
+  vn12      OVER:LT                textbb=-44,-66,44,66 main=131.9
+  jp13      OVER:LT                textbb=-80,-80,80,80 main=159.4
+### flag
+  vn1       OVER:LT                textbb=-78,-118,78,118 main=235.9
+  vn4       OVER:LT                textbb=-78,-118,78,118 main=235.9
+  vn8       OVER:LT                textbb=-59,-89,59,89 main=177.6
+  vn12      OVER:LT                textbb=-59,-89,59,89 main=177.6
+  jp13      OVER:LT                textbb=-56,-56,56,56 main=112.1
+### pile
+  vn1       OVER:LRB               textbb=47,512,1996,1154 main=216.0
+  vn4       OVER:RB                textbb=101,500,1996,1155 main=216.0
+  vn8       OVER:LRTB              textbb=-49,-164,1996,1145 main=216.0
+  vn12      OVER:LRTB              textbb=-31,-333,1996,1144 main=207.7
+  jp13      OVER:LRB               textbb=-49,62,2002,1145 main=174.1
+### blocks
+  vn1       OVER:LT                textbb=-49,-198,49,-49 main=148.4
+  vn4       OVER:LT                textbb=-49,-198,49,-49 main=148.4
+  vn8       OVER:LT                textbb=-49,-198,49,-49 main=148.4
+  vn12      OVER:LT                textbb=-27,-109,27,-27 main=81.5
+  jp13      OVER:LT                textbb=-45,-119,45,-30 main=89.6
+### tiles
+  vn1       OVER:LT                textbb=-56,-76,86,79 main=129.6
+  vn4       OVER:LT                textbb=-56,-76,1481,785 main=129.6
+  vn8       OVER:LT                textbb=-40,-55,62,57 main=93.8
+  vn12      OVER:LT                textbb=-40,-55,1759,856 main=93.8
+  jp13      OVER:LT                textbb=-63,-61,78,64 main=104.7
+### ledScroll
+  vn4       OVER:LR                textbb=-364,359,2506,743 main=216.0
+  vn8       OVER:LR                textbb=-364,359,2506,743 main=216.0
+  vn12      OVER:LR                textbb=-270,389,1875,675 main=160.2
+  vn16      OVER:LR                textbb=-207,517,2454,750 main=130.8
+  vn20      OVER:LR                textbb=-163,361,2081,557 main=110.3
+  jp13      OVER:LR                textbb=-164,435,2102,634 main=111.4
+### kaleido
+  vn1       OVER:RT                textbb=154,-377,2352,637 main=194.4
+  vn4       OVER:LRT               textbb=78,-334,2087,626 main=172.8
+  vn8       OVER:RT                textbb=172,-387,2415,721 main=172.8
+  vn12      OVER:RT                textbb=162,-384,2388,680 main=133.7
+  jp13      OVER:RT                textbb=97,-314,2871,680 main=133.7
+### dominoes
+  vn1       OVER:LT                textbb=-50,-232,50,-81 main=151.2
+  vn4       OVER:LT                textbb=-50,-377,50,-226 main=151.2
+  vn8       OVER:LT                textbb=-43,-327,43,-196 main=131.2
+  vn12      OVER:LT                textbb=-29,-217,29,-130 main=86.8
+  jp13      OVER:LT                textbb=-49,-245,49,-147 main=98.2
+### wall
+  vn1       OVER:LT                textbb=-110,-166,110,166 main=331.9
+  vn4       OVER:LT                textbb=-110,-166,110,166 main=331.9
+  vn8       OVER:LT                textbb=-110,-166,110,166 main=331.9
+  vn12      OVER:LT                textbb=-55,-83,55,83 main=165.9
+  jp13      OVER:LT                textbb=-83,-83,83,83 main=165.9
+### glitchGrid
+  vn1       OVER:LRTB deco:14      textbb=-330,-7,2000,1180 main=253.4
+  vn4       OVER:LRTB deco:14      textbb=-329,-7,2000,1180 main=252.6
+  vn8       OVER:LRTB deco:14      textbb=-773,-7,2520,1179 main=155.8
+  vn12      OVER:LRTB deco:14      textbb=-1568,-102,2979,1147 main=120.9
+  jp13      OVER:LRTB deco:14      textbb=-2507,-7,4341,1180 main=93.2
+### maskReveal
+  vn1       ERROR DOMMatrix is not defined
+  vn4       ERROR DOMMatrix is not defined
+  vn8       ERROR DOMMatrix is not defined
+### stencil
+  vn1       ERROR Cannot read properties of undefined (reading 'translate')
+  vn4       ERROR Cannot read properties of undefined (reading 'translate')
+  vn8       ERROR Cannot read properties of undefined (reading 'translate')
+  vn12      ERROR Cannot read properties of undefined (reading 'translate')
+  jp13      ERROR Cannot read properties of undefined (reading 'translate')
+### tyKeySplit
+  vn1       deco:17                textbb=480,324,1440,791 main=432.4
+  vn4       deco:17                textbb=480,324,1440,791 main=432.4
+  vn8       deco:17                textbb=309,324,1611,791 main=432.4
+  vn12      deco:17                textbb=366,324,1554,791 main=432.4
+  jp13      deco:17                textbb=287,214,1633,914 main=652.8
+### tyCropGiant
+  vn1       OVER:B deco:19         textbb=146,267,1729,1458 main=205.2
+  vn4       OVER:B deco:19         textbb=146,267,1729,1458 main=205.2
+  vn8       OVER:LRB deco:19       textbb=-713,267,2588,1458 main=205.2
+  vn12      OVER:LRT deco:19       textbb=-2022,-378,3987,853 main=109.3
+  jp13      OVER:LRB deco:19       textbb=-3651,186,5616,1458 main=168.4
+### tyCross
+  vn1       deco:17                textbb=651,196,1232,849 main=216.0
+  vn4       deco:17                textbb=681,210,1239,870 main=216.0
+  vn8       OVER:T deco:17         textbb=599,52,1299,1004 main=127.2
+### tyBandHide
+  vn1       OVER:LR                textbb=-324,378,4323,702 main=324.0
+  vn4       OVER:LR                textbb=-278,378,4360,702 main=324.0
+  vn8       OVER:LR                textbb=-464,380,4495,700 main=320.7
+  vn12      OVER:LR                textbb=-411,184,4896,896 main=195.8
+  jp13      OVER:LR                textbb=-667,290,5804,790 main=215.7
+### tyBaseline
+  vn1       deco:17                textbb=115,454,1805,626 main=172.8
+  vn4       deco:17                textbb=115,454,1805,626 main=172.8
+  vn8       deco:17                textbb=115,314,1805,766 main=172.8
+  vn12      deco:17                textbb=115,210,1805,870 main=155.6
+  vn16      deco:17                textbb=115,210,1805,870 main=155.6
+  jp13      deco:17                textbb=115,210,1805,870 main=155.6
+### tyScaleSteps
+  vn1       deco:17                textbb=490,203,1430,776 main=561.6
+  vn8       deco:17                textbb=134,250,1786,748 main=483.6
+  vn12      deco:17                textbb=134,365,1786,679 main=292.1
+  jp13      deco:17                textbb=134,431,1786,639 main=181.3
+### tySplitType
+  vn1       OVER:R deco:17         textbb=540,362,1843,718 main=324.0
+  vn12      OVER:R deco:17         textbb=604,228,1843,852 main=182.2
+### tyErode
+  vn1       deco:19                textbb=771,135,1253,945 main=161.2
+  vn8       deco:19                textbb=641,130,1368,950 main=129.0
+### tyFullTrack
+  vn1       deco:19                textbb=152,377,1753,648 main=216.0
+  vn4       deco:19                textbb=152,377,1753,648 main=216.0
+  vn8       deco:19                textbb=141,418,1769,615 main=150.2
+  vn12      deco:19                textbb=129,462,1786,580 main=79.5
+  jp13      deco:19                textbb=115,446,1805,592 main=104.0
+### tyStatCount
+  vn1       deco:17                textbb=154,346,1639,703 main=216.0
+  vn4       deco:17                textbb=154,346,1639,703 main=216.0
+  vn8       deco:17                textbb=154,346,1639,703 main=197.1
+  vn12      deco:17                textbb=154,248,1639,832 main=171.5
+  jp13      deco:17                textbb=154,346,1639,703 main=133.7
+### tyMargin
+  vn1       deco:17                textbb=154,470,347,577 main=73.4
+  vn4       deco:17                textbb=154,794,347,901 main=73.4
+  vn8       deco:17                textbb=154,794,552,901 main=73.4
+  vn12      deco:17                textbb=154,470,890,577 main=73.4
+  vn16      deco:17                textbb=154,743,621,952 main=73.4
+  jp13      deco:17                textbb=724,794,1766,901 main=73.4
+### tyRotBlock
+  vn12      OVER:L                 textbb=1,205,1731,875 main=321.9
+  jp13      OVER:L                 textbb=-112,246,1764,834 main=283.1
+### tySquare
+  vn4       deco:17                textbb=636,232,1284,933 main=291.6
+  vn12      deco:17                textbb=560,150,1360,994 main=179.8
+  jp13      deco:17                textbb=560,150,1360,994 main=179.8
+### cinTitleCard
+  vn8       deco:18                textbb=144,389,1596,1003 main=216.0
+  vn12      deco:18                textbb=144,270,1507,1003 main=214.0
+  vn16      deco:18                textbb=144,270,1598,1003 main=214.0
+  vn20      deco:18                textbb=144,307,1709,1003 main=179.4
+  jp13      deco:18                textbb=144,442,1709,1003 main=109.2
+### cinKickerTitle
+  jp13      deco:20                textbb=211,404,1594,592 main=103.5
+### cinNewsTicker
+  vn1       OVER:R                 textbb=1809,992,1865,1017 main=0.0
+  vn8       OVER:R                 textbb=1735,992,1858,1017 main=0.0
+  vn12      OVER:R                 textbb=1747,991,1976,1017 main=0.0
+  vn16      OVER:R                 textbb=1810,989,2148,1020 main=0.0
+  vn20      OVER:R                 textbb=1689,992,2003,1017 main=0.0
+  vn24      OVER:R                 textbb=1650,990,2135,1019 main=0.0
+  vn28      OVER:R                 textbb=1678,990,2192,1019 main=0.0
+  vn32      OVER:R                 textbb=1661,992,2186,1017 main=0.0
+  vn40      OVER:R                 textbb=1648,989,2493,1020 main=0.0
+  vn50      OVER:R                 textbb=1712,987,2874,1022 main=0.0
+  vn60      OVER:R                 textbb=1707,986,3183,1022 main=0.0
+  jp13      OVER:R                 textbb=1812,990,2189,1019 main=0.0
+  en20      OVER:R                 textbb=1659,985,2230,1024 main=0.0
+### cinPosterBig
+  vn1       OVER:L                 textbb=58,292,1338,745 main=129.6
+  vn4       OVER:L                 textbb=58,292,1338,745 main=129.6
+  vn8       OVER:L                 textbb=58,292,1501,745 main=129.6
+  vn12      OVER:L                 textbb=58,292,1501,745 main=129.6
+  vn16      OVER:L                 textbb=58,292,1551,745 main=129.6
+  vn20      OVER:L                 textbb=58,292,1419,745 main=95.3
+  jp13      OVER:L                 textbb=58,292,1652,745 main=129.6
+### cinDualColumn
+  vn20      OVER:R                 textbb=518,510,1894,570 main=59.4
+  vn24      OVER:R                 textbb=518,510,2047,570 main=59.4
+  vn28      OVER:R                 textbb=518,510,2108,570 main=59.4
+  vn32      OVER:R                 textbb=518,512,2168,568 main=56.2
+  vn40      OVER:R                 textbb=518,520,2131,560 main=40.7
+  vn50      OVER:R                 textbb=518,523,2168,557 main=34.4
+  jp13      OVER:R                 textbb=518,510,1859,570 main=59.4
+  en20      OVER:R                 textbb=518,510,1994,570 main=59.4
+
+problem layouts: 104 rows: 453

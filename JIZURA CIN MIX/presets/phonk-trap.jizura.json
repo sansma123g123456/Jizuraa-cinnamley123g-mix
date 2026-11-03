@@ -1,0 +1,26 @@
+{
+  "format": "jizura-preset",
+  "version": "2.0",
+  "name": "Phonk / Drift Trap Nation",
+  "timestamp": 1729780000000,
+  "theme": {
+    "style": "dark-kawaii"
+  },
+  "visualizer": {
+    "enabled": true,
+    "style": "circle_trap",
+    "colorMode": "theme"
+  },
+  "camera": {
+    "aspect": "16:9",
+    "config": {
+      "parallax3D": true,
+      "beatImpact": true,
+      "motionBlur": true,
+      "sandwichDepth": true
+    }
+  },
+  "lrcTreat": "glitchRgbSplit",
+  "style": "phonk",
+  "mood": "aggressive"
+}

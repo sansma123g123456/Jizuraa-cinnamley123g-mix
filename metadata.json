@@ -1,0 +1,6 @@
+{
+  "name": "Project Workspace",
+  "description": "Không gian làm việc sẵn sàng chờ bạn tải lên dự án.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
