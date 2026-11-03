@@ -5,7 +5,7 @@
 - **Script Guardrail (Critical Invariant)**: `index.html` contains exactly 12 script tags (3 external: `webm-muxer.min.js`, `amv_asset_library.js?v=3.3`, `src/amv_asset_manager.js?v=3.3`, and 9 inline scripts: Muxer/GIFENC, Core Engine, SubWindowAPI, StemVisualizerAPI, OscilloscopeScreen, JIZURA_I18N, ManualLyricSyncAPI, LrcLibAPI, AudioVisualizerAPI & SmartSectionAPI). Under no circumstances may new `<script>` tags be inserted; all enhancements must modify existing blocks.
 - **Audio & Visualizer Pipeline**: WebAudio AnalyserNode / StemVisualizerAPI -> AudioVisualizerAPI (Canvas 2D 3D Perspective Projection Engine) & amv_asset_library -> Stage Compositor -> Post-processing Filter Stack (20 filters) -> 60 FPS Canvas Output.
 - **Dual-Mirror Parity**: `amv_asset_manager.js` and `src/amv_asset_manager.js` are dual copies maintained at 100% byte-for-byte SHA256 parity.
-- **Multi-Point Sync Matrix**: Workspace Root -> `JIZURA CIN MIX/`, `C:\Users\cinnamley123g_local\Desktop\JIZURA CIN MIX\`, `G:\My Drive\JIZURA CIN MIX\`, and zip archives `G:\My Drive\JIZURA-CIN-MIX.zip` + Desktop zip.
+- **Multi-Point Sync Matrix**: Workspace Root -> `public/`, `cloudflare_dist/`, `JIZURA CIN MIX/`, plus zip archives `JIZURA-CIN-MIX.zip` + `cloudflare_dist.zip`. Automated by `tools/sync_all_mirrors.mjs`, `tools/build_cloudflare.mjs`, `tools/pack_zip.mjs`.
 - **Technique API Reference (source of truth)**: `docs/TECHNIQUE_API.md` documents the native technique registry (`J.register(group, key, def, pack)`) — all 10 groups (`layout/enter/hold/exit/decor/treat/bg/cam/fx/trans`), their exact signatures, the `env`/`it`/`charFn` contracts, preview-thumbnail requirements, audio-reactive helpers, and the check-list for adding new techniques. **Read this file before touching `index.html`** — it replaces re-reading the 55k-line engine.
 
 ## Feature Inventory
@@ -32,7 +32,7 @@
 | 19 | Preset Vault (.jizura) Import | Restore full project configuration from uploaded `.jizura` file with validation and graceful error toasts | M4 | ORIGINAL_REQUEST §R4 |
 | 20 | Dual-Mirror Hash Parity Enforcer | Guarantee 100% byte-for-byte SHA256 parity between `amv_asset_manager.js` and `src/amv_asset_manager.js` | M5 | ORIGINAL_REQUEST §R5 |
 | 21 | Standalone Execution Verification | Guarantee `index.html` runs 100% standalone via `file:///` in modern browser with 0 bundlers and 0 external script dependencies | M5 | ORIGINAL_REQUEST §R5 |
-| 22 | Multi-Point Deployment Sync | Automate full distribution sync to `JIZURA CIN MIX/`, Desktop, Google Drive, and zip archives | M5 | ORIGINAL_REQUEST §R5 |
+| 22 | Multi-Point Deployment Sync | Automate full distribution sync to `public/`, `cloudflare_dist/`, `JIZURA CIN MIX/`, and zip archives | M5 | ORIGINAL_REQUEST §R5 |
 | 23 | E2E Acceptance & Tier 5 Hardening | Pass 100% of E2E test suite (Tiers 1-4) and complete Tier 5 adversarial stress testing | M5 | ORIGINAL_REQUEST §Acceptance |
 
 ## Milestones
@@ -85,5 +85,6 @@
 - `amv_asset_manager.js`: Root-level AMV asset manager and post-processing controller.
 - `src/amv_asset_manager.js`: Mirror copy of `amv_asset_manager.js` (must maintain identical hash).
 - `amv_asset_library.js`: AMV presets and visualizer render routines.
-- `tests/`: Automated test suites (`node --test tests/*.test.js`).
-- `.agents/teamwork/`: Orchestrator and agent metadata/plans.
+- `tests/`: Automated test suites (`node --test --test-concurrency=1 tests/*.test.js`).
+- `tools/`: Mirror sync, zip packing, Cloudflare build, perf/alloc probes.
+- `docs/TECHNIQUE_API.md`: Source of truth for the technique registry (`J.register`).

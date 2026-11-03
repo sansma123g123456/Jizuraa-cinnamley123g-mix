@@ -23,7 +23,7 @@
 |---|---|
 | `index.html` | **Bản chính** (app + toàn bộ engine, 12 `<script>` inline). 55 884 dòng. |
 | `JIZURA CIN MIX/index.html` | Bản mirror đóng gói (zip phát hành). Phải có cùng feature set. |
-| `public/index.html` | Bản build Vite (cũ hơn, không bắt buộc sync tuyệt đối). |
+| `public/index.html` | Bản mirror của `index.html` (đồng bộ bằng `tools/sync_all_mirrors.mjs`). |
 | `amv_asset_library.js` / `amv_asset_manager.js` | Hệ thống add-on AMV (asset manager) — **KHÁC** với technique registry. |
 | `src/amv_asset_manager.js` | Mirror byte-for-byte của `amv_asset_manager.js` (bắt buộc SHA256 parity). |
 | `tests/*.test.js` | 22 suite, **408 test**, chạy bằng `node --test --test-concurrency=1 tests/*.test.js`. || `JIZURA-CIN-MIX.zip` | Gói phát hành, phải rebuild sau khi sửa `JIZURA CIN MIX/`. |

@@ -15,15 +15,8 @@ coverage/
 /cloudflare_dist/
 
 # --- Release folder: keep only the files the test-suite asserts on ---
-# Everything else (backup snapshots, icons, locale stubs) is rebuilt/regenerated.
+# Everything else (backup snapshots, icons) is rebuilt/regenerated.
 /JIZURA CIN MIX/backup/
-/JIZURA CIN MIX/en/
-/JIZURA CIN MIX/id/
-/JIZURA CIN MIX/ja/
-/JIZURA CIN MIX/ko/
-/JIZURA CIN MIX/vi/
-/JIZURA CIN MIX/zh-hans/
-/JIZURA CIN MIX/zh-hant/
 /JIZURA CIN MIX/*.png
 /JIZURA CIN MIX/*.svg
 /JIZURA CIN MIX/icon jizura + cinnamley123g.png
