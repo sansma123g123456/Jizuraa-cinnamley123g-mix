@@ -45929,6 +45929,15 @@ function tick(now) {
       _lastMediaTick = now;
       S.need = true;
     }
+    // The Stems panel paints its meters from draw(). While the transport is stopped
+    // nothing else sets S.need, so the meters froze on their last frame and the
+    // panel looked dead. Keep it repainting while it is visible.
+    if (window.StemVisualizerAPI && window.StemVisualizerAPI.isOpen && window.StemVisualizerAPI.isOpen()) {
+      if (now - _lastMediaTick >= 40) {
+        _lastMediaTick = now;
+        S.need = true;
+      }
+    }
   }
   if (S.need) { S.need = false; draw(); }
 }
@@ -54904,6 +54913,37 @@ try { localStorage.removeItem("jizura_vizzy_cfg"); } catch(e){}
       vRaw = 0.35 + Math.sin(t * 3) * 0.2;
       hRaw = (Math.sin(t * 16) > 0.4 ? 0.6 : 0.1) * (beatEnv + 0.3);
       audioDsp.energy.piano = beatEnv * 0.7;
+    } else if (window.S && window.S.plan) {
+      // IDLE PREVIEW (transport stopped, but a project is loaded).
+      // The multiband analysers only exist while an AudioContext is running, so without
+      // this branch every meter stayed pinned at 0% / "-45dB" and the panel looked dead
+      // the moment it was opened. Synthesize plausible band levels from the pre-computed
+      // plan energy curve instead, so the UI reads as "armed" rather than "broken".
+      const t = window.S.t || 0;
+      const plan = window.S.plan;
+
+      let energy = 0;
+      if (plan.energy && plan.energyRate > 0) {
+        const idx = Math.min(plan.energy.length - 1, Math.max(0, Math.floor(t * plan.energyRate)));
+        energy = plan.energy[idx] || 0;
+      }
+
+      // Reuse the exact fallback the on-stage visualizer uses (getVisualizerMetrics)
+      // so the meters and the stage react to the same numbers. The synthetic pulse
+      // keeps the bars alive even before an audio file has been analysed.
+      // NOTE: the pulse phase must use a wall clock, not S.t — the playhead is frozen
+      // while the transport is stopped, which would freeze the meters on one frame.
+      const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() / 1000 : Date.now() / 1000;
+      const ph = (now * 2.133) % 1;
+      const bPulse = Math.exp(-ph * 4.5);
+      kRaw = Math.min(1, Math.pow(energy, 1.4) * 1.25 + bPulse * 0.35);
+      bRaw = Math.min(1, energy * 1.15 + 0.12 + bPulse * 0.15);
+      vRaw = Math.min(1, Math.abs(Math.sin(now * 12)) * 0.25 + energy * 0.75 + 0.08);
+      // Hi-hat needs its own fast flicker, otherwise it stays pinned when there is
+      // no analysed energy (energy === 0) and the band looks frozen.
+      const hatPulse = Math.abs(Math.sin(now * 16)) > 0.55 ? 0.42 : 0.05;
+      hRaw = Math.min(1, energy * 0.55 + hatPulse);
+      audioDsp.energy.piano = Math.min(1, energy * 0.6 + bPulse * 0.1);
     } else {
       kRaw = bRaw = vRaw = hRaw = 0;
       audioDsp.energy.piano = 0;
@@ -54977,6 +55017,24 @@ try { localStorage.removeItem("jizura_vizzy_cfg"); } catch(e){}
 
     const toDb = v => (v > 0.01 ? (20 * Math.log10(v)).toFixed(0) : '-45') + 'dB';
 
+    // Status badge: LIVE while the multiband analysers are running, IDLE while we
+    // are synthesizing from the plan energy curve, so the panel never looks broken.
+    const badge = document.getElementById('stemDspStatus');
+    if (badge) {
+      const live = !!(window.S && window.S.playing && audioDsp.kick && audioDsp.kick.analyser);
+      const hasPlan = !!(window.S && window.S.plan);
+      if (live) {
+        badge.textContent = '● BỘ LỌC ĐA BĂNG TẦN: ĐANG XỬ LÝ LIVE';
+        badge.style.color = '#00ff66';
+      } else if (hasPlan) {
+        badge.textContent = '◐ CHẾ ĐỘ XEM TRƯỚC (NHẠC CHƯA PHÁT) — MỞ NHẠC ĐỂ CÓ DỮ LIỆU LIVE';
+        badge.style.color = '#fbbf24';
+      } else {
+        badge.textContent = '○ CHƯA CÓ DỰ ÁN — HÃY TẢI NHẠC LÊN ĐỂ XEM MỨC TÍN HIỆU';
+        badge.style.color = '#94a3b8';
+      }
+    }
+
     // Kick Meter
     const kPct = Math.min(100, audioDsp.smooth.kick * 100);
     meterK.style.width = kPct + '%';
@@ -55033,6 +55091,8 @@ try { localStorage.removeItem("jizura_vizzy_cfg"); } catch(e){}
     state.isMinimized = false;
     modal.style.display = 'flex';
     pill.style.display = 'none';
+    // The meters are painted from draw(), which only runs when S.need is set.
+    // Force one repaint so the panel does not open showing stale/empty bars.
     if (window.S) window.S.need = true;
   }
 
@@ -55082,6 +55142,9 @@ try { localStorage.removeItem("jizura_vizzy_cfg"); } catch(e){}
     minimize: minimizeWindow,
     restore: restoreWindow,
     resetPosition: resetPosition,
+    isOpen: function() {
+      return state.isOpen && !state.isMinimized;
+    },
 
     // DSP Accessor Helpers for visualizers & external modules
     getAudioDsp: function() {
