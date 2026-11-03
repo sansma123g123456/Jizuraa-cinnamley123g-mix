@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (node --test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        # The project has zero runtime dependencies, but `npm ci` needs a lockfile.
+        # Fall back to `npm install` when package-lock.json is absent.
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Run test suite
+        # --test-concurrency=1 is MANDATORY: the benchmark suites assert a
+        # < 16.6 ms/frame (60 FPS) budget. Running the 22 suites in parallel
+        # starves the CPU and makes those assertions fail spuriously.
+        run: node --test --test-concurrency=1 tests/*.test.js
+
+      - name: Upload test artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: |
+            npm-debug.log*
+            *.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  build:
+    name: Build static bundle
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Pages bundle
+        run: node tools/build_pages.mjs
+
+      - name: Verify the 12-script invariant
+        run: |
+          count=$(grep -o '<script\b' dist/index.html | wc -l)
+          echo "index.html script tags: $count"
+          if [ "$count" -ne 12 ]; then
+            echo "::error::index.html must contain exactly 12 <script> tags, found $count"
+            exit 1
+          fi
+
+      - name: Build release archives
+        run: |
+          node tools/build_cloudflare.mjs
+          node tools/pack_zip.mjs
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jizura-dist
+          path: |
+            dist/
+            JIZURA-CIN-MIX.zip
+            cloudflare_dist.zip
+          retention-days: 14

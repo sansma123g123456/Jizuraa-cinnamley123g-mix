@@ -1,0 +1,70 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, and never cancel a running one -
+# cancelling mid-upload can leave Pages in a broken state.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build static bundle
+        run: node tools/build_pages.mjs
+
+      - name: Verify the 12-script invariant
+        run: |
+          count=$(grep -o '<script\b' dist/index.html | wc -l)
+          echo "index.html script tags: $count"
+          if [ "$count" -ne 12 ]; then
+            echo "::error::index.html must contain exactly 12 <script> tags, found $count"
+            exit 1
+          fi
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          # Enables the Pages site on first run, so no manual Settings step is
+          # required. Requires the token to be able to administer the repo.
+          enablement: true
+          static_site_generator: ''
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
