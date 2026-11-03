@@ -26,7 +26,7 @@
 | `public/index.html` | Bản mirror của `index.html` (đồng bộ bằng `tools/sync_all_mirrors.mjs`). |
 | `amv_asset_library.js` / `amv_asset_manager.js` | Hệ thống add-on AMV (asset manager) — **KHÁC** với technique registry. |
 | `src/amv_asset_manager.js` | Mirror byte-for-byte của `amv_asset_manager.js` (bắt buộc SHA256 parity). |
-| `tests/*.test.js` | 22 suite, **408 test**, chạy bằng `node --test --test-concurrency=1 tests/*.test.js`. || `JIZURA-CIN-MIX.zip` | Gói phát hành, phải rebuild sau khi sửa `JIZURA CIN MIX/`. |
+| `tests/*.test.js` | 22 suite, **412 test**, chạy bằng `node --test --test-concurrency=1 tests/*.test.js`. || `JIZURA-CIN-MIX.zip` | Gói phát hành, phải rebuild sau khi sửa `JIZURA CIN MIX/`. |
 
 ### Bất biến bắt buộc (test sẽ fail nếu vi phạm)
 
@@ -61,6 +61,21 @@ node tools/pack_zip.mjs              # POSIX paths, giữ nguyên cấu trúc mi
 
 > ⚠️ **Dùng `node tools/pack_zip.mjs`**, không dùng `Compress-Archive`: hàm pack_zip giữ đường dẫn POSIX
 > (`src/amv_asset_manager.js`) và nén deflate, còn `Compress-Archive` sinh separator `\` và nén lớn hơn.
+
+### Deploy: cache-buster + service worker
+
+Khi sửa `amv_asset_library.js` / `amv_asset_manager.js`, **phải bump query version** trong `index.html`:
+
+```html
+<script src="amv_asset_library.js?v=3.4"></script>
+<script src="src/amv_asset_manager.js?v=3.4" ...></script>
+```
+
+Nếu không bump, service worker có thể vẫn serve file cũ. `sw.js` hiện dùng **network-first** cho app shell
+(HTML + 2 bundle AMV) nên cache cũ sẽ tự bị thay thế khi có mạng — nhưng query version vẫn là lớp phòng
+thủ thứ hai và giúp trình duyệt không tải lại file đã đổi.
+
+Khi đổi `sw.js`, nhớ bump `CACHE_NAME` (`jizura-cache-v4.2`) — đó là cách SW cũ bị gỡ khỏi máy client.
 
 ---
 

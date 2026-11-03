@@ -30,7 +30,7 @@ npx serve .
 npm test
 ```
 
-Lệnh này chạy `node --test --test-concurrency=1 tests/*.test.js` — 22 suite, 408 test.
+Lệnh này chạy `node --test --test-concurrency=1 tests/*.test.js` — 22 suite, 412 test.
 
 > ⚠️ **Bắt buộc `--test-concurrency=1`.** Các suite benchmark assert thời gian render `< 16.6 ms` (60 FPS).
 > Khi chạy song song, máy bị nghẽn và benchmark **fail giả**. Engine thực chỉ mất ~1.0–1.7 ms/frame.
@@ -43,7 +43,7 @@ Lệnh này chạy `node --test --test-concurrency=1 tests/*.test.js` — 22 sui
 | `amv_asset_library.js` / `amv_asset_manager.js` | Hệ thống AMV add-on (preset, post-filter, beat detector) |
 | `src/amv_asset_manager.js` | Mirror byte-for-byte của `amv_asset_manager.js` (bắt buộc SHA256 parity) |
 | `src/timeline/`, `src/pipeline/` | Beat detector & WebCodecs exporter |
-| `tests/` | 22 suite, 408 test |
+| `tests/` | 22 suite, 412 test |
 | `tools/` | Script sync mirror, đóng gói zip, build Cloudflare, perf probe |
 | `docs/TECHNIQUE_API.md` | **Nguồn sự thật** về technique registry (`J.register`) |
 
@@ -52,8 +52,22 @@ Lệnh này chạy `node --test --test-concurrency=1 tests/*.test.js` — 22 sui
 ```bash
 node tools/sync_all_mirrors.mjs    # đồng bộ public/, cloudflare_dist/, JIZURA CIN MIX/
 node tools/build_cloudflare.mjs    # build cloudflare_dist + cloudflare_dist.zip
+node tools/build_pages.mjs         # build dist/ cho GitHub Pages (giữ invariant 12 script)
 node tools/pack_zip.mjs            # build JIZURA-CIN-MIX.zip
 ```
+
+> ⚠️ **Sửa file gốc ở root rồi phải chạy `sync_all_mirrors.mjs`.** `src/`, `public/`, `cloudflare_dist/`
+> và `JIZURA CIN MIX/` chỉ là mirror — sửa trực tiếp vào chúng sẽ bị ghi đè, và SHA256 parity sẽ fail.
+
+## Triển khai
+
+| Nơi | Cách |
+|---|---|
+| **GitHub Pages** | Push lên `main` → workflow `pages.yml` tự build & deploy |
+| **Cloudflare Pages** | `node tools/build_cloudflare.mjs` rồi upload `cloudflare_dist/` |
+| **Offline / PWA** | `sw.js` cache app shell; **network-first** cho HTML + bundle JS nên fix mới luôn tới client |
+
+Live demo: <https://sansma123g123456.github.io/Jizuraa-cinnamley123g-mix/>
 
 ## Bất biến bắt buộc
 

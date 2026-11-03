@@ -1417,6 +1417,37 @@ test('Tier 2 - Boundary 15: Standalone Execution Paths & Unicode Names', async (
     assert.doesNotThrow(() => execSync(`node -c "${swPath}"`));
   });
 
+  await t.test('2.15.2b: The service worker serves the app shell network-first', () => {
+    // Regression: the SW was fully cache-first, so any client that had already
+    // visited the site kept getting the old JS bundle forever. The cache name only
+    // changes when sw.js itself changes, so deployed fixes never reached clients.
+    // The app shell (HTML + the two AMV bundles) must be network-first now.
+    const swPath = path.join(rootDir, 'sw.js');
+    const sw = fs.readFileSync(swPath, 'utf8');
+    assert.ok(/SHELL_PATHS/.test(sw), 'sw.js must define a shell path list');
+    assert.ok(/isShell/.test(sw), 'sw.js must branch on the shell path list');
+    // the shell branch must fetch() before falling back to the cache
+    const shellBranch = sw.slice(sw.indexOf('if (isShell)'));
+    const networkFirst = shellBranch.indexOf('fetch(e.request)');
+    const cacheFallback = shellBranch.indexOf('caches.match(e.request)');
+    assert.ok(networkFirst !== -1, 'the shell branch must fetch from the network');
+    assert.ok(cacheFallback === -1 || networkFirst < cacheFallback,
+      'the shell branch must try the network before the cache');
+  });
+
+  await t.test('2.15.2c: The asset version query matches across index.html and the mirrors', () => {
+    // The ?v= query is the second layer of defence against stale bundles.
+    const root = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
+    const mix = fs.readFileSync(path.join(rootDir, 'JIZURA CIN MIX', 'index.html'), 'utf8');
+    const grab = (html) => {
+      const m = html.match(/amv_asset_library\.js\?v=([0-9.]+)/);
+      return m ? m[1] : null;
+    };
+    const rootV = grab(root);
+    assert.ok(rootV, 'index.html must pin an asset version query');
+    assert.equal(grab(mix), rootV, 'the JIZURA CIN MIX mirror must use the same asset version');
+  });
+
   await t.test('2.15.3: WebM muxer library file existence', () => {
     const muxerPath = path.join(rootDir, 'webm-muxer.min.js');
     assert.ok(fs.existsSync(muxerPath));

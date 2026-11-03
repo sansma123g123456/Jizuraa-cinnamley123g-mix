@@ -2,7 +2,7 @@
 
 ## Architecture
 - **Overview**: JIZURA CIN MIX v2.0+ is a standalone, client-side, zero-dependency AMV Studio, Kinetic Lyric Video Creator, and 3D Audio Visualizer running 100% in modern web browsers (`index.html`) without bundlers or local servers.
-- **Script Guardrail (Critical Invariant)**: `index.html` contains exactly 12 script tags (3 external: `webm-muxer.min.js`, `amv_asset_library.js?v=3.3`, `src/amv_asset_manager.js?v=3.3`, and 9 inline scripts: Muxer/GIFENC, Core Engine, SubWindowAPI, StemVisualizerAPI, OscilloscopeScreen, JIZURA_I18N, ManualLyricSyncAPI, LrcLibAPI, AudioVisualizerAPI & SmartSectionAPI). Under no circumstances may new `<script>` tags be inserted; all enhancements must modify existing blocks.
+- **Script Guardrail (Critical Invariant)**: `index.html` contains exactly 12 script tags (3 external: `webm-muxer.min.js`, `amv_asset_library.js?v=3.4`, `src/amv_asset_manager.js?v=3.4`, and 9 inline scripts: Muxer/GIFENC, Core Engine, SubWindowAPI, StemVisualizerAPI, OscilloscopeScreen, JIZURA_I18N, ManualLyricSyncAPI, LrcLibAPI, AudioVisualizerAPI & SmartSectionAPI). Under no circumstances may new `<script>` tags be inserted; all enhancements must modify existing blocks. Bump the `?v=` query whenever a bundle changes, otherwise the service worker may keep serving the old file.
 - **Audio & Visualizer Pipeline**: WebAudio AnalyserNode / StemVisualizerAPI -> AudioVisualizerAPI (Canvas 2D 3D Perspective Projection Engine) & amv_asset_library -> Stage Compositor -> Post-processing Filter Stack (20 filters) -> 60 FPS Canvas Output.
 - **Dual-Mirror Parity**: `amv_asset_manager.js` and `src/amv_asset_manager.js` are dual copies maintained at 100% byte-for-byte SHA256 parity.
 - **Multi-Point Sync Matrix**: Workspace Root -> `public/`, `cloudflare_dist/`, `JIZURA CIN MIX/`, plus zip archives `JIZURA-CIN-MIX.zip` + `cloudflare_dist.zip`. Automated by `tools/sync_all_mirrors.mjs`, `tools/build_cloudflare.mjs`, `tools/pack_zip.mjs`.
@@ -39,10 +39,10 @@
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
 | M1 | Studio-Grade 3D Audio Visualizers & Drop Impact Engine | Features 1, 2, 3, 4, 5, 6: 3D perspective visualizers (Audio Galaxy, Cyber Ribbon, Holographic Lissajous), fallback safety, `window.audioDsp` live metrics, drop impact multiplier integration | None | DONE (All tests pass, 0.78-1.63ms/frame, 100% hash parity) |
-| M2 | 4 Kawaii Themes & Color Harmonizer | Features 7, 8, 9: 4 Kawaii palettes, theme sync, dynamic saturation and bloom glow harmonizer across calm vs drop | M1 | PLANNED |
-| M3 | LRCLIB Timeout/Feedback & Kinetic Typography v2.0 | Features 10, 11, 12, 13, 14, 15: 8s timeout, spinner, toast hints, syllable glow, 3 kinetic presets (Liquid Fill Glow, Glitch RGB Split, 3D Flip Perspective) | None | PLANNED |
-| M4 | WebCodecs Multi-Format Export & Preset Vault (.jizura) | Features 16, 17, 18, 19: 1-click 16:9 / 9:16 toggle, adaptive safe zone, `.jizura` JSON export/import | M1, M2 | PLANNED |
-| M5 | Standalone Integrity, 100% E2E Pass, Tier 5 Hardening & Multi-Point Sync | Features 20, 21, 22, 23: Standalone execution validation, 100% test pass against TEST_READY suite, Tier 5 adversarial hardening, hash parity check, multi-destination sync & zip creation | M1, M2, M3, M4 | PLANNED |
+| M2 | 4 Kawaii Themes & Color Harmonizer | Features 7, 8, 9: 4 Kawaii palettes, theme sync, dynamic saturation and bloom glow harmonizer across calm vs drop | M1 | DONE (implemented, 412/412 tests pass) |
+| M3 | LRCLIB Timeout/Feedback & Kinetic Typography v2.0 | Features 10, 11, 12, 13, 14, 15: 8s timeout, spinner, toast hints, syllable glow, 3 kinetic presets (Liquid Fill Glow, Glitch RGB Split, 3D Flip Perspective) | None | DONE (implemented, 412/412 tests pass) |
+| M4 | WebCodecs Multi-Format Export & Preset Vault (.jizura) | Features 16, 17, 18, 19: 1-click 16:9 / 9:16 toggle, adaptive safe zone, `.jizura` JSON export/import | M1, M2 | DONE (implemented, 412/412 tests pass) |
+| M5 | Standalone Integrity, 100% E2E Pass, Tier 5 Hardening & Multi-Point Sync | Features 20, 21, 22, 23: Standalone execution validation, 100% test pass against TEST_READY suite, Tier 5 adversarial hardening, hash parity check, multi-destination sync & zip creation | M1, M2, M3, M4 | DONE (412/412 tests, hash parity, GitHub Actions CI + GitHub Pages deploy) |
 
 ## Interface Contracts
 ### AudioVisualizerAPI ↔ AMVAssetLibrary ↔ Stage Engine
