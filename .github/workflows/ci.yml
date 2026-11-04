@@ -41,7 +41,7 @@ jobs:
 
       - name: Run test suite
         # --test-concurrency=1 is MANDATORY: the benchmark suites assert a
-        # < 16.6 ms/frame (60 FPS) budget. Running the 22 suites in parallel
+        # < 16.6 ms/frame (60 FPS) budget. Running the 25 suites in parallel
         # starves the CPU and makes those assertions fail spuriously.
         run: node --test --test-concurrency=1 tests/*.test.js
 

@@ -30,7 +30,7 @@ npx serve .
 npm test
 ```
 
-Lệnh này chạy `node --test --test-concurrency=1 tests/*.test.js` — 22 suite, 412 test.
+Lệnh này chạy `node --test --test-concurrency=1 tests/*.test.js` — 25 suite, 449 test.
 
 > ⚠️ **Bắt buộc `--test-concurrency=1`.** Các suite benchmark assert thời gian render `< 16.6 ms` (60 FPS).
 > Khi chạy song song, máy bị nghẽn và benchmark **fail giả**. Engine thực chỉ mất ~1.0–1.7 ms/frame.
@@ -43,7 +43,7 @@ Lệnh này chạy `node --test --test-concurrency=1 tests/*.test.js` — 22 sui
 | `amv_asset_library.js` / `amv_asset_manager.js` | Hệ thống AMV add-on (preset, post-filter, beat detector) |
 | `src/amv_asset_manager.js` | Mirror byte-for-byte của `amv_asset_manager.js` (bắt buộc SHA256 parity) |
 | `src/timeline/`, `src/pipeline/` | Beat detector & WebCodecs exporter |
-| `tests/` | 22 suite, 412 test |
+| `tests/` | 25 suite, 449 test |
 | `tools/` | Script sync mirror, đóng gói zip, build Cloudflare, perf probe |
 | `docs/TECHNIQUE_API.md` | **Nguồn sự thật** về technique registry (`J.register`) |
 

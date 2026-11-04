@@ -16,7 +16,7 @@ File đó là nguồn sự thật duy nhất về:
 Bất biến bắt buộc khi thêm technique:
 1. `index.html` phải giữ **đúng 12** thẻ `<script>`.
 2. Mọi kỹ thuật mới phải có ở **cả** `index.html` và `JIZURA CIN MIX/index.html`.
-3. `node --test --test-concurrency=1 tests/*.test.js` phải **408 pass / 0 fail** (22 suite).
+3. `node --test --test-concurrency=1 tests/*.test.js` phải **449 pass / 0 fail** (25 suite).
 4. Rebuild `JIZURA-CIN-MIX.zip` sau khi sửa `JIZURA CIN MIX/` (dùng `node tools/pack_zip.mjs`).
 5. Sau khi sửa file gốc ở root, chạy `node tools/sync_all_mirrors.mjs` để đồng bộ `public/`, `cloudflare_dist/`, `JIZURA CIN MIX/`.
 

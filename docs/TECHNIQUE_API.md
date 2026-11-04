@@ -26,7 +26,7 @@
 | `public/index.html` | Bản mirror của `index.html` (đồng bộ bằng `tools/sync_all_mirrors.mjs`). |
 | `amv_asset_library.js` / `amv_asset_manager.js` | Hệ thống add-on AMV (asset manager) — **KHÁC** với technique registry. |
 | `src/amv_asset_manager.js` | Mirror byte-for-byte của `amv_asset_manager.js` (bắt buộc SHA256 parity). |
-| `tests/*.test.js` | 22 suite, **412 test**, chạy bằng `node --test --test-concurrency=1 tests/*.test.js`. || `JIZURA-CIN-MIX.zip` | Gói phát hành, phải rebuild sau khi sửa `JIZURA CIN MIX/`. |
+| `tests/*.test.js` | 25 suite, **449 test**, chạy bằng `node --test --test-concurrency=1 tests/*.test.js`. || `JIZURA-CIN-MIX.zip` | Gói phát hành, phải rebuild sau khi sửa `JIZURA CIN MIX/`. |
 
 ### Bất biến bắt buộc (test sẽ fail nếu vi phạm)
 

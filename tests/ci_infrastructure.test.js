@@ -39,7 +39,7 @@ test('CI infra: workflows are valid YAML-ish (no tabs, no CRLF, required keys)',
 });
 
 test('CI infra: the test runner keeps --test-concurrency=1', () => {
-  // Running the 22 suites in parallel starves the CPU and makes the 60 FPS
+  // Running the 25 suites in parallel starves the CPU and makes the 60 FPS
   // benchmark assertions fail spuriously.
   const ci = readWorkflow('ci.yml');
   assert.ok(/--test-concurrency=1/.test(ci),
