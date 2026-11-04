@@ -354,11 +354,11 @@ test('CHALLENGER STRESS - Suite 2: Extreme Audio Metrics Stress (Silence, Unity,
 
   const styles = [
     'circle_trap', 'bottom_mirror', 'ribbon_wave', 'side_wings', 'orbit_particles',
-    'cyber_grid', 'galaxy_orbit', 'cyber_ribbon_3d', 'holographic_lissajous'
+    'cyber_grid', 'galaxy_orbit', 'cyber_ribbon_3d', 'holographic_lissajous', 'aurora_spectrum'
   ];
 
   const audioAssets = amv.byCategory('Phản ứng âm thanh');
-  assert.equal(audioAssets.length, 12, 'Must test all 12 audio reactive templates in AMV library');
+  assert.equal(audioAssets.length, 13, 'Must test all 13 audio reactive templates in AMV library');
 
   const metricScenarios = [
     {

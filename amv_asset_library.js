@@ -1820,6 +1820,101 @@
     ctx.restore();
   });
 
+  // 4.5 Aurora Spectrum (Vòng Cực Quang FFT Radial - Zero N^2, Batched 60FPS)
+  A('audio_aurora_spectrum', 'Aurora Spectrum (Vòng Cực Quang FFT Radial)', CAT_AUDIO, {
+    intensity: N(1.0, 0.2, 3.0, 0.1),
+    radius: N(200, 100, 420, 10),
+    spokes: N(72, 36, 128, 4),
+    primaryColor: C('#22d3ee'),
+    secondaryColor: C('#a78bfa'),
+    tertiaryColor: C('#34d399'),
+    coreGlow: N(1.0, 0.2, 2.5, 0.1)
+  }, function (ctx, w, h, t, p) {
+    var m = getAudioMetrics(t, p);
+    var count = p.spokes || 72;
+    var intMul = p.intensity || 1.0;
+    var cx = w / 2, cy = h / 2;
+    var baseR = Math.min(w, h) * 0.28;
+    var maxLen = (p.radius || 200) * (h / 1080) * intMul;
+    var col1 = p.primaryColor || '#22d3ee';
+    var col2 = p.secondaryColor || '#a78bfa';
+    var col3 = p.tertiaryColor || '#34d399';
+
+    var freqBins = (typeof window !== 'undefined' && window.audioDsp && typeof window.audioDsp.getFrequencySpectrum === 'function')
+      ? window.audioDsp.getFrequencySpectrum(count, t, p.plan)
+      : null;
+
+    // Fallback envelope when no live DSP is available: a slow breathing ring
+    // driven by the plan energy so the visualizer is never completely dead.
+    var fallback = function (i) {
+      var ph = t * 2.1 + (i / count) * TAU * 3;
+      return 0.28 + 0.22 * Math.sin(ph) + m.energy * 0.4;
+    };
+
+    // Guard the FFT bins: a contaminated plan.energy can push NaN into the
+    // spectrum, and a single NaN coordinate poisons the whole canvas path.
+    var binAt = function (i) {
+      var v = freqBins ? freqBins[i] : fallback(i);
+      return (typeof v === 'number' && isFinite(v)) ? v : 0;
+    };
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    // Pass 1: radial spokes, one gradient for the whole ring
+    var ringGrad = ctx.createRadialGradient(cx, cy, baseR * 0.55, cx, cy, baseR + maxLen);
+    ringGrad.addColorStop(0, rgba(col1, 0.55));
+    ringGrad.addColorStop(0.45, rgba(col2, 0.75));
+    ringGrad.addColorStop(1, rgba(col3, 0.2));
+
+    ctx.strokeStyle = ringGrad;
+    ctx.lineWidth = Math.max(1.5, (maxLen / count) * 1.6);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (var i = 0; i < count; i++) {
+      var ang = (i / count) * TAU - Math.PI / 2;
+      var hz = binAt(i);
+      var len = baseR + Math.max(2, hz * maxLen);
+      var px = cx + Math.cos(ang) * len;
+      var py = cy + Math.sin(ang) * len;
+      ctx.moveTo(cx + Math.cos(ang) * baseR * 0.62, cy + Math.sin(ang) * baseR * 0.62);
+      ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Pass 2: the inner ring (batched arc)
+    ctx.strokeStyle = rgba(col1, 0.75);
+    ctx.lineWidth = Math.max(1, Math.min(w, h) * 0.0022);
+    ctx.beginPath();
+    ctx.arc(cx, cy, baseR * 0.6 + m.kick * 18 * intMul, 0, TAU);
+    ctx.stroke();
+
+    // Pass 3: rotating arc markers
+    var spin = t * 0.35;
+    ctx.strokeStyle = rgba(col3, 0.8);
+    ctx.lineWidth = Math.max(2, Math.min(w, h) * 0.004);
+    ctx.beginPath();
+    for (var k = 0; k < 3; k++) {
+      var a0 = spin + (k / 3) * TAU;
+      ctx.moveTo(cx + Math.cos(a0) * baseR * 0.86, cy + Math.sin(a0) * baseR * 0.86);
+      ctx.arc(cx, cy, baseR * 0.86, a0, a0 + 0.42);
+    }
+    ctx.stroke();
+
+    // Pass 4: glowing core
+    var coreR = baseR * 0.16 * (1 + m.kick * 0.55 * intMul);
+    var coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+    coreGrad.addColorStop(0, 'rgba(255,255,255,0.95)');
+    coreGrad.addColorStop(0.5, rgba(col2, 0.5));
+    coreGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, coreR, 0, TAU);
+    ctx.fill();
+
+    ctx.restore();
+  });
+
   // 5. Stardust Constellation (Ultra Fast Batched 60FPS - Zero N^2 Bottleneck)
   A('audio_stardust_constellation', 'Stardust Constellation (Chòm Sao Năng Lượng)', CAT_AUDIO, {
     intensity: N(1.0, 0.2, 3.0, 0.1),
@@ -3471,6 +3566,11 @@
     getAudioMetrics: getAudioMetrics,
     get: function (id) {
       var ALIASES = {
+        'audio_aurora_spectrum': 'audio_aurora_spectrum',
+        'aurora_spectrum': 'audio_aurora_spectrum',
+        'aurora_ring': 'audio_aurora_spectrum',
+        'spectrum_ring': 'audio_aurora_spectrum',
+
         'audio_neon_circle': 'audio_trap_nation_pro',
         'circle_trap': 'audio_trap_nation_pro',
         'circle': 'audio_trap_nation_pro',

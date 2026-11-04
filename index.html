@@ -45076,6 +45076,554 @@ trReg('cinRibbonWipe', {
 
 
 /* ============================================================
+   JIZURA CIN MIX — NATIVE TECHNIQUES BATCH 4 (pack: cin_mix_fx)
+   12 kỹ thuật mới, bổ sung các ngách còn thiếu:
+   karaoke highlight, morse code, chromatic ramp, light leak, marquee,
+   kinetic underline, film countdown, split-flap, beat-reactive letterbox,
+   audio-driven bg particles, parallax dust, hex-sliced reveal.
+   ============================================================ */
+(() => {
+'use strict';
+const E = J.E;
+const PK = 'cin_mix_fx';
+const clamp = J.clamp;
+const TAU = J.TAU;
+const glyphs = (it, fn) => { (it.charFns || (it.charFns = [])).push(fn); };
+const fontsOf = (st, roles) => J.fontsOf(st, roles);
+const meas = (text, font, size, o) => J.measure(Object.assign({ text, font, size }, o || {}));
+const bbOf = (x0, y0, x1, y1) => ({ x0, y0, x1, y1, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, boxes: [] });
+const outK = env => 1 - E.inCubic(env.pOut || 0);
+const inK = env => E.outCubic(clamp((env.lt || 0) / 0.45));
+const kickOf = env => (window.StemVisualizerAPI && window.StemVisualizerAPI.getKickShake && window.StemVisualizerAPI.getKickShake(env.t, env.plan)) || 0;
+const bassOf = env => (window.StemVisualizerAPI && window.StemVisualizerAPI.getBassBloom && window.StemVisualizerAPI.getBassBloom(env.t, env.plan)) || 0;
+const beatK = env => { const b = env.beat; if (!b) return 0; return Math.max(0, 1 - b.since / Math.max(0.2, b.len)); };
+const minLyricPx = (H, W) => Math.min(H, W != null ? W : H) * 0.032;
+const minSubPx = (H, W) => Math.min(H, W != null ? W : H) * 0.021;
+const safeBox = (W, H) => ({ x0: W * 0.06, x1: W * 0.94, y0: H * 0.1, y1: H * 0.9, w: W * 0.88, h: H * 0.8 });
+
+/* ---------------- LAYOUT (batch 4) ---------------- */
+
+// 1. Karaoke Highlight: từng chữ sáng dần theo nhịp, phần chưa đến mờ đi
+J.register('layout', 'cinKaraokeHighlight', {
+  name: '🎤 Karaoke Highlight (Chữ Sáng Dần Theo Nhịp)',
+  tags: ['pop', 'editorial', 'graphic'],
+  w: 1, fits: n => n >= 1 && n <= 40,
+  plan(rng, cut, st) {
+    return {
+      font: rng.pick(fontsOf(st, ['display', 'body'])),
+      speed: rng.range(0.5, 1.6),      // ký tự / giây
+      accentAll: rng.chance(0.35),
+      underline: rng.chance(0.55),
+    };
+  },
+  render(env) {
+    const { W, H, sc } = env, P = env.cut.params || {};
+    const raw = String(env.cut.text || '');
+    const lines = J.splitLines(raw, W < H ? 8 : 16);
+    const lineArr = String(lines).split('\n');
+    const o = { track: 0.04, lead: 1.18 };
+    const size = Math.max(minLyricPx(H, W), Math.min(J.fitSize(lines, P.font, W * 0.82, H * 0.4, o), H * 0.17));
+    const m = meas(lines, P.font, size, o);
+    const cx = W / 2, cy = H * 0.48;
+    const e = inK(env), oo = outK(env);
+    const total = Math.max(1, [...raw].filter(c => c !== ' ').length);
+    const lit = clamp(((env.lt || 0) * (P.speed || 1)) / total);
+    const bb = J.mainDraw(env, {
+      text: lines, font: P.font, size, x: cx, y: cy, track: 0.04, lead: 1.18,
+      color: P.accentAll ? sc.accent : sc.fg,
+      alpha: e * oo,
+    });
+    // vòng sáng chạy theo từng ký tự
+    if (bb && !P.accentAll) {
+      const idx = Math.floor(lit * total);
+      const per = Math.max(1, Math.ceil(total / Math.max(1, lineArr.length)));
+      const li = clamp(Math.floor(idx / per), 0, lineArr.length - 1);
+      const ltext = lineArr[li] || '';
+      const lm = meas(ltext, P.font, size, o);
+      const lx = cx - lm.w / 2;
+      const ly = cy - (lineArr.length * size * (o.lead || 1.2)) / 2 + li * size * (o.lead || 1.2);
+      const ci = clamp(idx - li * per, 0, [...ltext].length);
+      const cm = meas([...ltext].slice(0, ci).join(''), P.font, size, o);
+      env.rect(lx + cm.w - size * 0.06, ly + size * 0.12, size * 0.12, size * 0.86,
+        sc.accent, 0.9 * e * oo, false);
+      if (P.underline) {
+        env.rect(lx, ly + size * 0.98, lm.w, Math.max(2, size * 0.028), sc.accent, 0.55 * e * oo, false);
+      }
+    }
+    return bb || bbOf(cx - m.w / 2, cy - m.h / 2, cx + m.w / 2, cy + m.h / 2);
+  }
+});
+
+// 2. Morse Code: chữ cái + mã morse chạy dưới chữ chính
+J.register('layout', 'cinMorseCode', {
+  name: '📡 Morse Code (Mã Morse Chạy Dưới Chữ)',
+  tags: ['editorial', 'graphic', 'glitch'],
+  w: 0.8, fits: n => n >= 1 && n <= 30,
+  plan(rng, cut, st) {
+    return {
+      font: rng.pick(fontsOf(st, ['display', 'serif'])),
+      mono: rng.pick(fontsOf(st, ['mono'])),
+      scroll: rng.range(0.06, 0.22),
+    };
+  },
+  render(env) {
+    const { W, H, sc } = env, P = env.cut.params || {};
+    const raw = String(env.cut.text || '');
+    const lines = J.splitLines(raw, W < H ? 8 : 14);
+    const o = { track: 0.05, lead: 1.18 };
+    const size = Math.max(minLyricPx(H, W), Math.min(J.fitSize(lines, P.font, W * 0.78, H * 0.34, o), H * 0.15));
+    const cx = W / 2, cy = H * 0.44;
+    const e = inK(env), oo = outK(env);
+    const bb = J.mainDraw(env, { text: lines, font: P.font, size, x: cx, y: cy, track: 0.05, lead: 1.18, color: sc.fg });
+    // morse alphabet (subset) — deterministic, no randomness needed
+    const MORSE = { A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....',
+      I: '..', J: '.---', K: '-.-', L: '.-..', M: '--', N: '-.', O: '---', P: '.--.', Q: '--.-',
+      R: '.-.', S: '...', T: '-', U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..' };
+    const letters = [...raw.toUpperCase()].filter(c => MORSE[c]).map(c => MORSE[c]);
+    if (letters.length) {
+      const ms = Math.max(minSubPx(H, W), size * 0.2);
+      const txt = letters.join(' ');
+      const mm = meas(txt, P.mono, ms, { track: 0.2 });
+      const sp = (P.scroll || 0.12) * W;
+      const off = ((env.lt || 0) * sp) % Math.max(1, mm.w + W * 0.25);
+      const sb = safeBox(W, H);
+      const ctx = env.ctx;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(sb.x0, cy + size * 0.72, sb.w, ms * 1.8);
+      ctx.clip();
+      const reps = Math.max(2, Math.ceil(sb.w / Math.max(1, mm.w)) + 2);
+      for (let i = 0; i < reps; i++) {
+        env.draw({
+          text: txt, font: P.mono, size: ms, x: sb.x0 - off + i * (mm.w + W * 0.25),
+          y: cy + size * 0.72 + ms, align: 'left', track: 0.2,
+          color: sc.accent, alpha: 0.72 * e * oo, ghost: false,
+        });
+      }
+      ctx.restore();
+    }
+    return bb;
+  }
+});
+
+// 3. Hex Sliced Reveal: chữ bị cắt thành ô hex, hiện dần
+J.register('layout', 'cinHexSlice', {
+  name: '⬡ Hex Sliced Reveal (Chữ Cắt Ô Hex)',
+  tags: ['glitch', 'graphic', 'pop'],
+  w: 0.9, fits: n => n >= 1 && n <= 18,
+  plan(rng, cut, st) {
+    return { font: rng.pick(fontsOf(st, ['display', 'body'])), r: rng.range(0.035, 0.06), speed: rng.range(0.5, 1.2) };
+  },
+  render(env) {
+    const { W, H, sc } = env, P = env.cut.params || {};
+    const raw = String(env.cut.text || '');
+    const lines = J.splitLines(raw, W < H ? 7 : 12);
+    const o = { track: 0.06, lead: 1.2 };
+    const size = Math.max(minLyricPx(H, W), Math.min(J.fitSize(lines, P.font, W * 0.8, H * 0.4, o), H * 0.18));
+    const cx = W / 2, cy = H * 0.5;
+    const e = inK(env), oo = outK(env);
+    const bb = J.mainDraw(env, { text: lines, font: P.font, size, x: cx, y: cy, track: 0.06, lead: 1.2, color: sc.fg });
+    // lưới hex phủ lên chữ, các ô "mở" dần theo thứ tự cột
+    const r = (P.r || 0.045) * Math.min(W, H);
+    const cols = Math.ceil(W / (r * 1.5)) + 2;
+    const rows = Math.ceil(H / (r * 1.73)) + 2;
+    const prog = clamp((env.lt || 0) * (P.speed || 0.8));
+    const ctx = env.ctx;
+    ctx.save();
+    ctx.globalAlpha = 0.85 * e * oo;
+    for (let gy = 0; gy < rows; gy++) {
+      const off = (gy % 2) * r * 0.75;
+      for (let gx = 0; gx < cols; gx++) {
+        const hx = gx * r * 1.5 - off;
+        const hy = gy * r * 1.73;
+        const order = clamp((gx / cols) * 0.7 + (gy / rows) * 0.3);
+        if (order > prog) {
+          ctx.fillStyle = sc.bg;
+          ctx.beginPath();
+          for (let k = 0; k < 6; k++) {
+            const ang = TAU / 6 * k + Math.PI / 6;
+            const px = hx + Math.cos(ang) * r * 0.92;
+            const py = hy + Math.sin(ang) * r * 0.92;
+            if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+    }
+    ctx.restore();
+    return bb;
+  }
+});
+
+/* ---------------- ENTER (batch 4) ---------------- */
+
+// 4. Character Shatter In: chữ vỡ vụn từ ngoài vào trong
+J.register('enter', 'cinShatterIn', {
+  name: '💥 Shatter In (Chữ Vỡ Vụn Từ Ngoài Vào)',
+  tags: ['glitch', 'pop', 'graphic'],
+  pieces: true,
+  inDur: (dur, n) => Math.min(0.75, 0.28 + n * 0.012),
+  apply(env, it, p) {
+    const e = E.outExpo(p), k = 1 - e;
+    const dir = (it.seed % 2 === 0 ? 1 : -1);
+    it.alpha = (it.alpha ?? 1) * Math.min(1, p * 3);
+    it.size *= 1 + k * 0.55;
+    it.rot = (it.rot || 0) + dir * k * 16;
+    it.skx = (it.skx || 0) + dir * k * 22;
+    it.x += dir * env.W * 0.08 * k;
+    it.y -= env.H * 0.05 * k;
+    glyphs(it, (i, g) => {
+      const ph = (i * 0.7) % TAU;
+      return {
+        dx: Math.cos(ph) * k * env.W * 0.035 * (i % 3 + 1),
+        dy: Math.sin(ph) * k * env.H * 0.03 * (i % 2 + 1),
+        rot: dir * k * (12 + (i % 5) * 8),
+        a: clamp(p * 2.2 - (i % 4) * 0.12),
+      };
+    });
+  }
+});
+
+// 5. Blur Bloom In: chữ mờ rồi nét dần từ tâm ra
+J.register('enter', 'cinBlurBloomIn', {
+  name: '🌫️ Blur Bloom In (Mờ Rồi Nét Dần)',
+  tags: ['emotional', 'calm', 'editorial'],
+  inDur: (dur, n) => Math.min(0.9, 0.4 + n * 0.01),
+  apply(env, it, p) {
+    const e = E.outCubic(p), k = 1 - e;
+    it.blur = Math.max(it.blur || 0, k * it.size * 0.14);
+    it.alpha = (it.alpha ?? 1) * Math.min(1, p * 2);
+    it.size *= 1 + k * 0.14;
+    it.shadow = { x: 0, y: 0, blur: k * it.size * 0.3, color: (env.sc && env.sc.accent) || '#fff' };
+    glyphs(it, (i) => ({ a: clamp(p * 1.8 - i * 0.03) }));
+  }
+});
+
+/* ---------------- HOLD (batch 4) ---------------- */
+
+// 6. Kinetic Underline: gạch chân chạy theo nhịp
+J.register('hold', 'cinKineticUnderline', {
+  name: '〰️ Kinetic Underline (Gạch Chân Chạy Nhịp)',
+  tags: ['pop', 'editorial', 'graphic'],
+  apply(env, it, amt) {
+    const k = beatK(env) * 0.6 + kickOf(env) * 0.4;
+    it.charFns && it.charFns.push((i, g, n) => {
+      const ph = env.lt * 2.2 + i * 0.5;
+      return {
+        dy: Math.sin(ph) * it.size * 0.05 * amt,
+        rot: Math.cos(ph * 0.8) * 2.4 * amt * k,
+      };
+    });
+  }
+});
+
+// 7. Hexagon Morph Hold: ký tự nhấp nháy xen kẽ kiểu hexagon
+J.register('hold', 'cinHexMorphHold', {
+  name: '⬢ Hex Morph Hold (Ký Tự Nhấp Nháy Lục Giác)',
+  tags: ['glitch', 'graphic', 'pop'],
+  apply(env, it, amt) {
+    const k = kickOf(env);
+    glyphs(it, (i) => {
+      const ph = env.lt * 1.6 + i * 0.38;
+      const wob = Math.sin(ph) * amt;
+      return {
+        sx: 1 + wob * 0.12 * (1 + k * 0.4),
+        sy: 1 - wob * 0.09 * (1 + k * 0.4),
+        rot: wob * 4 * (i % 2 === 0 ? 1 : -1),
+      };
+    });
+  }
+});
+
+/* ---------------- EXIT (batch 4) ---------------- */
+
+// 8. Light Leak Exit: chữ bị "rò" sáng và tan
+J.register('exit', 'cinLightLeakExit', {
+  name: '💡 Light Leak Exit (Chữ Rò Sáng Rồi Tan)',
+  tags: ['emotional', 'editorial', 'calm'],
+  outDur: (dur, n) => Math.min(0.9, 0.4 + n * 0.012),
+  apply(env, it, p) {
+    const e = E.inCubic(p);
+    it.alpha = (it.alpha ?? 1) * (1 - e * 0.9);
+    it.x += e * env.W * 0.04;
+    it.blur = Math.max(it.blur || 0, e * it.size * 0.1);
+    it.shadow = { x: e * it.size * 0.2, y: 0, blur: e * it.size * 0.5, color: (env.sc && env.sc.accent) || '#fff' };
+    glyphs(it, (i) => ({ a: clamp(1 - p * 1.3 + i * 0.02), dx: e * i * it.size * 0.03 }));
+  }
+});
+
+// 9. Slice Apart Exit: chữ tách thành dải ngang rồi trôi đi
+J.register('exit', 'cinSliceApartExit', {
+  name: '🪓 Slice Apart Exit (Chữ Tách Dải Ngang)',
+  tags: ['glitch', 'pop', 'graphic'],
+  pieces: true,
+  outDur: (dur, n) => Math.min(0.8, 0.32 + n * 0.01),
+  apply(env, it, p) {
+    const e = E.inOutCubic(p);
+    it.alpha = (it.alpha ?? 1) * (1 - e);
+    glyphs(it, (i) => {
+      const band = i % 4;
+      return {
+        dy: (band - 1.5) * e * it.size * 0.22,
+        dx: (band % 2 ? 1 : -1) * e * env.W * 0.03,
+        rot: e * (band - 1.5) * 3,
+      };
+    });
+  }
+});
+
+/* ---------------- TREAT (batch 4) ---------------- */
+
+// 10. Chromatic Ramp: viền đổi màu chậm từ RGB
+J.register('treat', 'cinChromaticRamp', {
+  name: '🌈 Chromatic Ramp (Viền Đổi Màu Chậm)',
+  tags: ['pop', 'glitch', 'graphic'],
+  apply(env, it) {
+    const t = env.lt || 0;
+    const ph = t * 0.55;
+    const r = Math.round(127 + 127 * Math.sin(ph));
+    const g = Math.round(127 + 127 * Math.sin(ph + TAU / 3));
+    const b = Math.round(127 + 127 * Math.sin(ph + (TAU * 2) / 3));
+    it.stroke = Math.max(1, it.size * 0.014);
+    it.strokeColor = `rgba(${r},${g},${b},0.8)`;
+    it.shadow = { x: 0, y: 0, blur: it.size * 0.12, color: `rgba(${r},${g},${b},0.35)` };
+  }
+});
+
+// 11. Halftone Dots: chữ phủ bằng lưới chấm halftone
+J.register('treat', 'cinHalftoneDots', {
+  name: '🔵 Halftone Dots (Chữ Phủ Chấm Halftone)',
+  tags: ['editorial', 'graphic', 'pop'],
+  apply(env, it) {
+    const sc = env.sc || {};
+    const k = bassOf(env);
+    // the engine's pattern vocabulary: 'dots' | 'stripes' | 'lines' | 'hatch'
+    it.pattern = 'dots';
+    it.patternColor = sc.accent || '#F5A50C';
+    it.patternBg = J.mix(sc.accent || '#F5A50C', sc.bg || '#000000', 0.62);
+    it.fillAlpha = 0.92;
+    it.shadow = { x: 0, y: 0, blur: k * it.size * 0.08, color: sc.accent2 || '#16F4D4' };
+  }
+});
+
+/* ---------------- DECOR (batch 4) ---------------- */
+
+// 12. Beat Letterbox: thanh đen trên/dưới co giãn theo kick
+J.register('decor', 'cinBeatLetterbox', {
+  name: '📽️ Beat Letterbox (Thanh Đen Theo Kick)',
+  tags: ['pop', 'glitch', 'editorial'],
+  w: 1, layer: 'front',
+  draw(env, bb0, Pd) {
+    if (env.pass !== 'main') return;
+    const { W, H } = env;
+    const sc = env.sc || {};
+    const k = kickOf(env);
+    const h = H * (0.055 + k * 0.045);
+    env.rect(0, 0, W, h, sc.bg || '#000', 0.96, false);
+    env.rect(0, H - h, W, h, sc.bg || '#000', 0.96, false);
+  }
+});
+
+// 13. Parallax Dust: bụi nhiều lớp chuyển động tốc độ khác nhau
+J.register('decor', 'cinParallaxDust', {
+  name: '✨ Parallax Dust (Bụi Nhiều Lớp Tốc Độ Khác)',
+  tags: ['emotional', 'calm', 'editorial'],
+  w: 0.9, layer: 'back',
+  draw(env, bb0, Pd) {
+    if (env.pass !== 'main') return;
+    const { W, H } = env;
+    const sc = env.sc || {};
+    const seed = (Pd && Pd.seed) || 1;
+    const layers = 3;
+    for (let L = 0; L < layers; L++) {
+      const depth = 0.3 + L * 0.35;
+      const n = 14 + L * 8;
+      const sp = (8 + L * 16) * (env.fx && env.fx.motion ? env.fx.motion : 1);
+      const alpha = 0.16 + L * 0.1;
+      for (let i = 0; i < n; i++) {
+        const x = J.r(seed, L, i, 7) * W;
+        const yBase = J.r(seed, L, i, 13) * H;
+        const y = (yBase + (env.t * sp * depth)) % H;
+        const r = (0.6 + J.r(seed, L, i, 29) * 1.8) * depth;
+        env.circle(x, y, r, sc.accent || '#fff', null, 1, alpha, false);
+      }
+    }
+  }
+});
+
+/* ---------------- BG (batch 4) ---------------- */
+
+// 14. Audio Particle Field: hạt nền bay theo bass
+J.register('bg', 'cinAudioParticles', {
+  name: '🔊 Audio Particle Field (Trường Hạt Theo Bass)',
+  tags: ['pop', 'glitch', 'emotional'],
+  w: 1,
+  plan: rng => ({ seed: (rng.int(1, 999999)), n: rng.int(40, 90) }),
+  draw(env, P) {
+    const ctx = env.ctx;
+    const { W, H } = env;
+    const sc = env.sc || {};
+    const seed = (P && P.seed) || 7;
+    const n = (P && P.n) || 60;
+    const bass = bassOf(env);
+    const k = kickOf(env);
+    const accent = sc.accent || '#F5A50C';
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < n; i++) {
+      const fx = J.r(seed, i, 3, 11);
+      const fy = J.r(seed, i, 5, 23);
+      const fs = J.r(seed, i, 9, 41);
+      const sp = 0.012 + fs * 0.05;
+      const x = fx * W;
+      const y = ((fy + env.t * sp) % 1) * H;
+      const r = (1 + fs * 3) * (1 + bass * 0.8);
+      const a = 0.06 + fs * 0.16 + k * 0.05;
+      ctx.fillStyle = accent;
+      ctx.globalAlpha = clamp(a);
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+});
+
+/* ---------------- CAM (batch 4) ---------------- */
+
+// 15. Parallax Push: camera đẩy chậm + pan nhẹ theo beat
+J.register('cam', 'cinParallaxPush', {
+  name: '🪄 Parallax Push (Đẩy Chậm + Pan Nhẹ)',
+  tags: ['emotional', 'editorial', 'calm'],
+  w: 1, strong: true,
+  plan: rng => ({ dir: rng.pick([1, -1]), amp: rng.range(0.02, 0.055) }),
+  get(env, P) {
+    const u = clamp((env.lt || 0) / Math.max(0.3, (env.cut && env.cut.dur) || 2));
+    const dir = (P && P.dir) || 1;
+    const amp = (P && P.amp) || 0.035;
+    const k = beatK(env);
+    return {
+      s: 1.02 + u * amp + k * 0.012,
+      x: dir * u * env.W * amp * 0.6,
+      y: -u * env.H * amp * 0.25,
+      rot: dir * u * 0.5,
+    };
+  }
+});
+
+/* ---------------- FX (batch 4) ---------------- */
+
+// 16. Film Countdown: đếm ngược 3-2-1 như phim nhựa cũ
+J.register('fx', 'cinFilmCountdown', {
+  name: '🎬 Film Countdown (Đếm Ngược Phim Cũ)',
+  tags: ['editorial', 'pop', 'glitch'],
+  w: 0.9, dur: 8, amp: 1.1,
+  draw(ctx, ev, k, I) {
+    const { cw, ch } = I;
+    const sc = I.sc || {};
+    const num = Math.max(1, Math.ceil((1 - k) * 3));
+    const frac = (1 - k) * 3 - Math.floor((1 - k) * 3);
+    const cx = cw / 2, cy = ch / 2;
+    const rad = Math.min(cw, ch) * 0.28;
+    const acc = sc.accent || '#F5A50C';
+    // vòng tròn đếm ngược
+    ctx.save();
+    ctx.strokeStyle = acc;
+    ctx.lineWidth = Math.max(2, Math.min(cw, ch) * 0.006);
+    ctx.globalAlpha = 0.9;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rad, -Math.PI / 2, -Math.PI / 2 + TAU * (1 - frac));
+    ctx.stroke();
+    // số
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = sc.fg || '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `700 ${Math.round(rad * 1.15)}px sans-serif`;
+    ctx.fillText(String(num), cx, cy + rad * 0.04);
+    // vạch quét
+    ctx.strokeStyle = acc;
+    ctx.globalAlpha = 0.6;
+    ctx.lineWidth = Math.max(1, Math.min(cw, ch) * 0.002);
+    ctx.beginPath();
+    ctx.moveTo(cx - rad * 1.25, cy);
+    ctx.lineTo(cx + rad * 1.25, cy);
+    ctx.stroke();
+    ctx.restore();
+  }
+});
+
+/* ---------------- TRANS (batch 4) ---------------- */
+
+// 17. Hex Mosaic Reveal: B lộ dần qua các ô hex nhỏ
+J.register('trans', 'cinHexMosaic', {
+  name: '⬡ Hex Mosaic Reveal (Mở Dần Qua Ô Hex)',
+  tags: ['glitch', 'graphic', 'pop'],
+  w: 1, dur: 0.45,
+  plan: rng => ({ r: rng.range(0.05, 0.09), cols: rng.int(10, 18) }),
+  draw(ctx, A, B, p, I, Pt) {
+    const { cw, ch } = I;
+    ctx.drawImage(A, 0, 0);
+    const e = E.inOutCubic(clamp(p));
+    const r = ((Pt && Pt.r) || 0.07) * Math.min(cw, ch);
+    const cols = Math.ceil(cw / (r * 1.5)) + 1;
+    const rows = Math.ceil(ch / (r * 1.73)) + 1;
+    ctx.save();
+    for (let gy = 0; gy < rows; gy++) {
+      const off = (gy % 2) * r * 0.75;
+      for (let gx = 0; gx < cols; gx++) {
+        const hx = gx * r * 1.5 - off;
+        const hy = gy * r * 1.73;
+        const order = clamp((gx / cols) * 0.6 + (gy / rows) * 0.4);
+        if (order > e) continue;
+        ctx.save();
+        ctx.beginPath();
+        for (let k = 0; k < 6; k++) {
+          const ang = TAU / 6 * k + Math.PI / 6;
+          const px = hx + Math.cos(ang) * r * 0.95;
+          const py = hy + Math.sin(ang) * r * 0.95;
+          if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(B, 0, 0);
+        ctx.restore();
+      }
+    }
+    ctx.restore();
+  }
+});
+
+// 18. Glitch Slice Swap: A và B xen kẽ theo dải ngang
+J.register('trans', 'cinGlitchSliceSwap', {
+  name: '⚡ Glitch Slice Swap (Xen Kẽ Dải Ngang)',
+  tags: ['glitch', 'pop', 'graphic'],
+  w: 1.1, dur: 0.4,
+  plan: rng => ({ n: rng.int(6, 14), jitter: rng.range(0.004, 0.02) }),
+  draw(ctx, A, B, p, I, Pt) {
+    const { cw, ch } = I;
+    const e = E.inQuad(clamp(p));
+    const n = (Pt && Pt.n) || 9;
+    const bh = ch / n;
+    const jit = ((Pt && Pt.jitter) || 0.01) * cw;
+    ctx.save();
+    for (let i = 0; i < n; i++) {
+      const q = clamp((e - i * 0.02) / 0.9);
+      const y0 = Math.round(i * bh), y1 = Math.round((i + 1) * bh);
+      const useB = q > 0.5;
+      const src = useB ? B : A;
+      const dx = useB ? (J.r(i, 3, 7, 11) - 0.5) * jit : 0;
+      ctx.drawImage(src, 0, y0, cw, y1 - y0, dx, y0, cw, y1 - y0);
+    }
+    ctx.restore();
+  }
+});
+
+})();
+
+
+/* ============================================================
    JIZURA — which entries random picks may use
    1) 追加分 (extra): everything added after the first public
       version (356 parts, 12 styles). Random picks (planner /
