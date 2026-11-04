@@ -6,9 +6,12 @@
   "type": "module",
   "scripts": {
     "test": "node --test --test-concurrency=1 tests/*.test.js",
+    "test:coverage": "node tools/coverage_report.mjs",
     "sync": "node tools/sync_all_mirrors.mjs",
     "build:cloudflare": "node tools/build_cloudflare.mjs",
-    "build:zip": "node tools/pack_zip.mjs"
+    "build:pages": "node tools/build_pages.mjs",
+    "build:zip": "node tools/pack_zip.mjs",
+    "check:workflows": "node tools/check_workflows.mjs .github/workflows/ci.yml .github/workflows/pages.yml .github/workflows/coverage.yml .github/workflows/lighthouse.yml .github/workflows/cloudflare.yml"
   },
   "engines": {
     "node": ">=20"

@@ -1,0 +1,66 @@
+name: Coverage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    name: Coverage report
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Run test suite with coverage
+        # --test-concurrency=1 is MANDATORY: the benchmark suites assert a
+        # < 16.6 ms/frame (60 FPS) budget. Running the suites in parallel
+        # starves the CPU and makes those assertions fail spuriously.
+        #
+        # NOTE: the engine lives in index.html and is executed inside a vm
+        # sandbox by the test harness, so Node's V8 coverage only instruments
+        # the ES modules it loads directly. The report therefore reflects the
+        # module surface, not the whole engine - it is a regression signal,
+        # not a completeness metric.
+        run: node --test --test-concurrency=1 --experimental-test-coverage tests/*.test.js
+
+      - name: Summarise coverage
+        run: node tools/coverage_report.mjs --json > coverage-summary.json || true
+
+      - name: Show coverage summary
+        run: node tools/coverage_report.mjs
+
+      - name: Upload coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            coverage-summary.json
+          if-no-files-found: ignore
+          retention-days: 7
