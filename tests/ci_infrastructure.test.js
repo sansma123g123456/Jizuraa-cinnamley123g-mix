@@ -9,6 +9,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -69,17 +70,36 @@ test('CI infra: the lighthouse workflow builds the bundle before auditing', () =
   const text = readWorkflow('lighthouse.yml');
   assert.ok(/tools\/build_pages\.mjs/.test(text),
     'the lighthouse workflow must build the static bundle first');
-  assert.ok(/lighthouserc\.js/.test(text),
+  assert.ok(/lighthouserc\.cjs/.test(text),
     'the lighthouse workflow must reference the config file');
-  assert.ok(fs.existsSync(path.join(rootDir, 'lighthouserc.js')),
-    'lighthouserc.js must exist at the repository root');
+  assert.ok(fs.existsSync(path.join(rootDir, 'lighthouserc.cjs')),
+    'lighthouserc.cjs must exist at the repository root');
+});
+
+test('CI infra: the lighthouse config is CommonJS-loadable', () => {
+  // The repo is `"type": "module"`, so a `lighthouserc.js` would be parsed
+  // as ESM and `module.exports` would blow up inside the action with
+  // "Unexpected token ']'". The `.cjs` extension forces the CJS loader.
+  const p = path.join(rootDir, 'lighthouserc.cjs');
+  assert.ok(fs.existsSync(p), 'lighthouserc.cjs must exist at the repository root');
+  assert.ok(!fs.existsSync(path.join(rootDir, 'lighthouserc.js')),
+    'the ESM-parsed lighthouserc.js must not linger next to the .cjs one');
+
+  const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
+  assert.equal(pkg.type, 'module', 'the package is ESM - that is why the config must be .cjs');
+
+  // Load it exactly the way @lhci/cli does and assert the shape.
+  const cfg = createRequire(import.meta.url)(p);
+  assert.ok(cfg && cfg.ci, 'the config must export a "ci" section');
+  assert.ok(cfg.ci.collect && cfg.ci.collect.staticDistDir, 'ci.collect must be configured');
+  assert.ok(cfg.ci.assert && cfg.ci.assert.assertions, 'ci.assert must be configured');
 });
 
 test('CI infra: the cloudflare workflow skips cleanly without credentials', () => {
   const text = readWorkflow('cloudflare.yml');
   assert.ok(/CLOUDFLARE_API_TOKEN/.test(text), 'must read the API token secret');
   assert.ok(/CLOUDFLARE_ACCOUNT_ID/.test(text), 'must read the account id secret');
-  assert.ok(/if: steps\.creds\.outputs\.ready/.test(text),
+  assert.ok(/if:[^\n]*steps\.creds\.outputs\.ready/.test(text),
     'the deploy step must be conditional on the credentials check');
 });
 
@@ -117,17 +137,65 @@ test('CI infra: package.json scripts cover the build pipeline', () => {
 
 test('CI infra: the build tools exist and are syntactically valid', () => {
   const tools = ['build_pages.mjs', 'build_cloudflare.mjs', 'pack_zip.mjs',
-    'sync_all_mirrors.mjs', 'coverage_report.mjs', 'notify_progress.mjs'];
+    'sync_all_mirrors.mjs', 'coverage_report.mjs', 'notify_progress.mjs',
+    'check_actions.mjs'];
   for (const t of tools) {
     const p = path.join(rootDir, 'tools', t);
     assert.ok(fs.existsSync(p), `missing tool: tools/${t}`);
   }
 });
 
+test('CI infra: the action-reference checker exists and is wired into CI', () => {
+  // A deleted action repo kills the job at "Set up job" with no clue, so the
+  // references are verified explicitly before the build.
+  const src = fs.readFileSync(path.join(rootDir, 'tools', 'check_actions.mjs'), 'utf8');
+  assert.ok(/api\.github\.com\/repos/.test(src), 'the checker must query the GitHub API');
+  assert.ok(/refs\.size/.test(src) && /refs\.get/.test(src),
+    'the checker must collect the `uses:` references');
+
+  const ci = readWorkflow('ci.yml');
+  assert.ok(/tools\/check_actions\.mjs/.test(ci),
+    'the CI workflow must verify the action references');
+
+  const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
+  assert.ok(pkg.scripts['check:actions'], 'a "check:actions" script is required');
+});
+
 test('CI infra: the lighthouse config asserts a byte-weight ceiling', () => {
   // The engine is ~3 MB of inline HTML; the guard catches an accidental
   // doubling of the bundle (e.g. a minifier that stops working).
-  const cfg = fs.readFileSync(path.join(rootDir, 'lighthouserc.js'), 'utf8');
+  const cfg = fs.readFileSync(path.join(rootDir, 'lighthouserc.cjs'), 'utf8');
   assert.ok(/total-byte-weight/.test(cfg), 'must guard the total byte weight');
   assert.ok(/maxNumericValue/.test(cfg), 'must set an explicit byte-weight ceiling');
+});
+
+test('CI infra: every workflow that builds a bundle installs the dev dependencies', () => {
+  // terser is a devDependency and the minifier needs it. A build job without
+  // `npm ci` silently falls back to the verbatim 3.2 MB bundle, and the
+  // minified-bundle verification then fails the whole deployment.
+  for (const w of ['ci.yml', 'pages.yml', 'lighthouse.yml', 'cloudflare.yml']) {
+    const text = readWorkflow(w);
+    assert.ok(/npm ci|npm install/.test(text),
+      `${w}: must install the dev dependencies (terser) before building`);
+  }
+});
+
+test('CI infra: the cloudflare deploy uses an action that actually exists', () => {
+  // `cloudflare/pages-action` is gone from GitHub - resolving it fails the
+  // job at "Set up job", before any step can run.
+  const text = readWorkflow('cloudflare.yml');
+  const used = text.split('\n').filter(l => /^\s*uses:\s*/.test(l)).join('\n');
+  assert.ok(!/cloudflare\/pages-action/.test(used),
+    'cloudflare/pages-action no longer exists - use cloudflare/wrangler-action');
+  assert.ok(/cloudflare\/wrangler-action@v\d+/.test(used),
+    'the Cloudflare deploy must go through cloudflare/wrangler-action');
+  assert.ok(/pages deploy/.test(text),
+    'the wrangler command must publish the cloudflare_dist folder');
+});
+
+test('CI infra: the cloudflare deploy never publishes a pull request', () => {
+  const text = readWorkflow('cloudflare.yml');
+  const deployStep = text.split('- name: Deploy to Cloudflare Pages')[1] || '';
+  assert.ok(/github\.event_name\s*!=\s*'pull_request'/.test(deployStep),
+    'a pull request must not push a deployment over the live site');
 });

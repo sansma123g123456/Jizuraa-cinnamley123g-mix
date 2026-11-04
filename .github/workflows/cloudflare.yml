@@ -35,6 +35,16 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install dependencies
+        # terser is a devDependency and the minifier needs it. Without this
+        # step the build silently falls back to the verbatim 3.2 MB bundle.
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
+
       - name: Build Cloudflare distribution
         run: node tools/build_cloudflare.mjs
 
@@ -48,21 +58,26 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # `cloudflare/pages-action` does not exist any more (the repo 404s), so
+      # the deploy goes through `wrangler-action`, which drives the Wrangler
+      # CLI directly. `command` is a Wrangler command line, not a file path.
       - name: Deploy to Cloudflare Pages
         id: deploy
-        if: steps.creds.outputs.ready == 'true'
-        uses: cloudflare/pages-action@v1
+        # Only the main branch is published - a pull request must not push a
+        # deployment over the live site.
+        if: github.event_name != 'pull_request' && steps.creds.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: ${{ vars.CLOUDFLARE_PROJECT_NAME || 'jizura-cin-mix' }}
-          directory: cloudflare_dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy cloudflare_dist --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME || 'jizura-cin-mix' }} --branch=main
 
       - name: Summary
         run: |
-          if [ "${{ steps.creds.outputs.ready }}" = "true" ]; then
+          if [ "${{ steps.creds.outputs.ready }}" = "true" ] && [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "Deployed to Cloudflare Pages: ${{ steps.deploy.outputs.deployment-url }}" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ steps.creds.outputs.ready }}" = "true" ]; then
+            echo "Cloudflare build OK - deploy skipped (pull request)." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "Cloudflare deploy skipped (no credentials configured)." >> "$GITHUB_STEP_SUMMARY"
           fi

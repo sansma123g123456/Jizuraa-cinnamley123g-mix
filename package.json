@@ -13,7 +13,8 @@
     "build:zip": "node tools/pack_zip.mjs",
     "build:min": "node tools/minify_bundle.mjs",
     "verify:min": "node tools/verify_minified.mjs",
-    "check:workflows": "node tools/check_workflows.mjs .github/workflows/ci.yml .github/workflows/pages.yml .github/workflows/coverage.yml .github/workflows/lighthouse.yml .github/workflows/cloudflare.yml"
+    "check:workflows": "node tools/check_workflows.mjs .github/workflows/ci.yml .github/workflows/pages.yml .github/workflows/coverage.yml .github/workflows/lighthouse.yml .github/workflows/cloudflare.yml",
+    "check:actions": "node tools/check_actions.mjs"
   },
   "engines": {
     "node": ">=20"

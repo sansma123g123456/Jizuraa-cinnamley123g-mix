@@ -145,7 +145,13 @@ check('asset ?v= queries preserved', () => {
 check('bundle is smaller than the source', () => {
   const a = Buffer.byteLength(rawHtml);
   const b = Buffer.byteLength(html);
-  if (b >= a) throw new Error(`minified ${b} >= source ${a}`);
+  if (b >= a) {
+    throw new Error(
+      `minified ${b} >= source ${a}. ` +
+      'The bundle was NOT minified - the most likely cause is a missing ' +
+      'terser install (run `npm ci` before the build).'
+    );
+  }
   console.log(`       ${(a / 1024).toFixed(1)} KB -> ${(b / 1024).toFixed(1)} KB`);
 });
 

@@ -29,6 +29,17 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install dependencies
+        # terser is a devDependency and the minifier needs it. Without this
+        # step the build silently falls back to the verbatim 3.2 MB bundle and
+        # `tools/verify_minified.mjs` fails the job.
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
+
       - name: Build static bundle
         run: node tools/build_pages.mjs
 

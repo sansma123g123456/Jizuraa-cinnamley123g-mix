@@ -37,7 +37,7 @@ module.exports = {
         'first-contentful-paint': ['warn', { maxNumericValue: 4000 }],
         'largest-contentful-paint': ['warn', { maxNumericValue: 6000 }],
         'total-byte-weight': ['warn', { maxNumericValue: 6000000 }],
-      ],
+      },
     },
     upload: {
       target: 'temporary-public-storage',

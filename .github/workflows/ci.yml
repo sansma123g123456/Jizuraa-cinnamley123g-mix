@@ -45,6 +45,11 @@ jobs:
         # starves the CPU and makes those assertions fail spuriously.
         run: node --test --test-concurrency=1 tests/*.test.js
 
+      - name: Verify the workflow action references
+        # GitHub resolves `uses: owner/repo@ref` while preparing the job, so a
+        # deleted action repo kills the run at "Set up job" with no clue.
+        run: node tools/check_actions.mjs
+
       - name: Upload test artifacts on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -68,6 +73,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Install dependencies
+        # terser is a devDependency and the minifier needs it. Without this
+        # step the build silently falls back to the verbatim 3.2 MB bundle.
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
 
       - name: Build Pages bundle
         run: node tools/build_pages.mjs
