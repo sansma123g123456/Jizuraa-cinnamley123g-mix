@@ -72,6 +72,12 @@ jobs:
       - name: Build Pages bundle
         run: node tools/build_pages.mjs
 
+      - name: Verify the minified bundle boots
+        # Minification is the only change that can break the app without a
+        # build error: the engine leaks globals by name and the inline blocks
+        # talk to each other through them.
+        run: node tools/verify_minified.mjs
+
       - name: Verify the 12-script invariant
         run: |
           count=$(grep -o '<script\b' dist/index.html | wc -l)
@@ -80,6 +86,14 @@ jobs:
             echo "::error::index.html must contain exactly 12 <script> tags, found $count"
             exit 1
           fi
+
+      - name: Report the bundle size
+        run: |
+          raw=$(wc -c < index.html)
+          min=$(wc -c < dist/index.html)
+          echo "source : $raw bytes"
+          echo "shipped: $min bytes"
+          echo "saving : $(( 100 - (min * 100 / raw) ))%"
 
       - name: Build release archives
         run: |

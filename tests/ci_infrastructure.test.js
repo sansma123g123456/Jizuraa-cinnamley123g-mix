@@ -89,6 +89,22 @@ test('CI infra: the pages workflow never cancels an in-flight deployment', () =>
     'cancelling mid-upload can leave GitHub Pages in a broken state');
 });
 
+test('CI infra: every deploying workflow verifies the minified bundle boots', () => {
+  // Minification can break the engine without a build error (the inline
+  // blocks talk to each other through globals that get mangled).
+  for (const w of ['ci.yml', 'pages.yml', 'lighthouse.yml']) {
+    const text = readWorkflow(w);
+    assert.ok(/tools\/verify_minified\.mjs/.test(text),
+      `${w}: must verify the minified bundle before deploying`);
+  }
+});
+
+test('CI infra: the build pipeline is minification-aware', () => {
+  const ci = readWorkflow('ci.yml');
+  assert.ok(/tools\/build_pages\.mjs/.test(ci), 'the CI workflow must build the bundle');
+  assert.ok(/tools\/build_cloudflare\.mjs/.test(ci), 'the CI workflow must build the Cloudflare bundle');
+});
+
 test('CI infra: package.json scripts cover the build pipeline', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
   assert.ok(pkg.scripts.test, 'a "test" script is required');

@@ -8,14 +8,17 @@
     "test": "node --test --test-concurrency=1 tests/*.test.js",
     "test:coverage": "node tools/coverage_report.mjs",
     "sync": "node tools/sync_all_mirrors.mjs",
-    "build:cloudflare": "node tools/build_cloudflare.mjs",
     "build:pages": "node tools/build_pages.mjs",
+    "build:cloudflare": "node tools/build_cloudflare.mjs",
     "build:zip": "node tools/pack_zip.mjs",
+    "build:min": "node tools/minify_bundle.mjs",
+    "verify:min": "node tools/verify_minified.mjs",
     "check:workflows": "node tools/check_workflows.mjs .github/workflows/ci.yml .github/workflows/pages.yml .github/workflows/coverage.yml .github/workflows/lighthouse.yml .github/workflows/cloudflare.yml"
   },
   "engines": {
     "node": ">=20"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "terser": "^5.31.6"
+  }
 }

@@ -32,6 +32,9 @@ jobs:
       - name: Build static bundle
         run: node tools/build_pages.mjs
 
+      - name: Verify the minified bundle boots
+        run: node tools/verify_minified.mjs
+
       - name: Verify the 12-script invariant
         run: |
           count=$(grep -o '<script\b' dist/index.html | wc -l)

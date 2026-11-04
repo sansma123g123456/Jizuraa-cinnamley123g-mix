@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import zlib from 'zlib';
+import { execFileSync } from 'node:child_process';
 
 const distDir = path.resolve('cloudflare_dist');
 if (fs.existsSync(distDir)) {
@@ -45,6 +46,31 @@ const headersContent = `/*
 `;
 fs.writeFileSync(path.join(distDir, '_headers'), headersContent, 'utf8');
 console.log('Created cloudflare_dist/_headers');
+
+// --- minify the inline engine -----------------------------------------
+// `index.html` at the repo root stays readable; the deployed copy is
+// minified. The minifier writes `dist/index.html`, so copy it over.
+let minified = false;
+try {
+  execFileSync(process.execPath, ['tools/minify_bundle.mjs'], { stdio: 'inherit' });
+  const minHtml = path.resolve('dist', 'index.html');
+  if (fs.existsSync(minHtml)) {
+    fs.copyFileSync(minHtml, path.join(distDir, 'index.html'));
+    minified = true;
+    console.log('Copied minified index.html -> cloudflare_dist/index.html');
+  }
+} catch (err) {
+  console.warn('WARNING: minification failed - deploying the verbatim bundle.');
+  console.warn(String(err.stderr || err.message));
+}
+
+// Guard: exactly 12 <script> tags.
+const builtHtml = fs.readFileSync(path.join(distDir, 'index.html'), 'utf8');
+const scriptCount = (builtHtml.match(/<script\b/g) || []).length;
+if (scriptCount !== 12) {
+  throw new Error(`cloudflare_dist/index.html must have exactly 12 <script> tags, found ${scriptCount}`);
+}
+console.log(`cloudflare_dist/index.html script tags: ${scriptCount} (invariant OK), minified: ${minified ? 'yes' : 'no'}`);
 
 console.log('Cloudflare distribution folder ready!');
 
