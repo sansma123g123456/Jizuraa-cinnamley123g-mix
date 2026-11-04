@@ -3955,6 +3955,8 @@ button.small.primary { padding: 4px 12px; }
           <button id="btnClearBeats" class="ghost small" title="Xóa tất cả các mốc nhịp Beat">🗑️ Xóa nhịp</button>
           <button id="btnSnapToggle" class="ghost small" title="Bật/Tắt tự động bắt dính vào mốc nhịp (Snap)" aria-pressed="true" style="color:var(--cyan);border-color:var(--cyan);">🧲 Bám nhịp: BẬT</button>
           <button id="btnUndoEdit" class="ghost small" title="Hoàn tác thay đổi lời và thời gian (Ctrl+Z)" disabled>Hoàn tác</button>
+          <button id="btnUndoSettings" class="ghost small" title="Hoàn tác cài đặt dự án (theme, tỷ lệ, hiệu ứng, camera) — Phím tắt: Ctrl+Alt+Z" disabled>↩️ Cài đặt</button>
+          <button id="btnRedoSettings" class="ghost small" title="Làm lại thay đổi cài đặt — Phím tắt: Ctrl+Alt+Y" disabled>↪️</button>
           <span id="tlZoomLevel" class="mono muted" style="font-size:11px;padding:0 4px;font-weight:600;">1.0x</span>
           <button id="tlOut" class="ghost small icon-txt" title="Thu nhỏ" aria-label="Thu nhỏ dòng thời gian">−</button>
           <button id="tlIn" class="ghost small icon-txt" title="Phóng to (hoặc cuộn trên dòng thời gian)" aria-label="Phóng to dòng thời gian">＋</button>
@@ -5327,6 +5329,17 @@ button.small.primary { padding: 4px 12px; }
         <label class="file ghost small" style="cursor:pointer;font-weight:600;" title="Chọn file .jizura hoặc .json từ máy tính">
           📤 Nhập File (.jizura / .json)<input id="fileVaultImport" type="file" accept=".jizura,.json,application/json">
         </label>
+        <button type="button" id="btnShareLink" class="ghost small" style="font-weight:600;color:var(--cyan);border-color:var(--cyan);" title="Tạo liên kết chia sẻ dự án (chỉ cấu hình, không chứa media) — mở trên máy khác để cùng chỉnh sửa">🔗 Chia sẻ Link</button>
+      </div>
+      <div id="shareLinkBox" hidden style="margin-top:10px;padding:10px;border-radius:8px;background:var(--raised2);border:1px solid var(--line2);">
+        <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:6px;">🔗 Liên kết chia sẻ (chỉ cấu hình dự án):</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input id="shareLinkInput" type="text" readonly style="flex:1;min-width:0;font-size:11px;font-family:var(--mono);padding:6px 8px;border-radius:6px;border:1px solid var(--line2);background:var(--bg);color:var(--text);" title="Liên kết chia sẻ — bấm để sao chép">
+          <button type="button" id="btnCopyShareLink" class="ghost small" style="font-weight:600;">📋 Sao chép</button>
+        </div>
+        <div id="shareLinkNote" class="muted" style="font-size:10.5px;margin-top:6px;line-height:1.4;">
+          Liên kết chứa cấu hình dự án (kỹ thuật, theme, camera, visualizer, lời, timeline) — không chứa file media nặng.
+        </div>
       </div>
       <div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--line2);display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span style="font-size:11px;font-weight:600;color:var(--text);">⚡ Cài đặt sẵn:</span>
@@ -46336,6 +46349,8 @@ function replan() {
   renderLines(); sizeViewport(); drawTimeline(); updateTimeUI();
   lastCutIdx = -2;
   if (typeof cutPick !== 'undefined' && cutPick.g) fillCutPick();
+  // a new plan has a new layout - a pinch-zoomed preview would be stale
+  if (typeof resetTouchZoom === 'function') resetTouchZoom();
   S.need = true; autosave(); ensureFonts(); drawSwatch(); showNow();
   clearTimeout(warmTimer); warmTimer = setTimeout(warm, 450);
 }
@@ -46430,6 +46445,172 @@ function sizeViewport() {
   if (c.style.height !== sh) c.style.height = sh;
   S.need = true;
 }
+
+/* ============================================================
+   MOBILE TOUCH GESTURES  (pinch-zoom / double-tap / swipe)
+   ------------------------------------------------------------
+   Desktop users get a mouse wheel + drag; phone users get nothing.
+   These gestures close that gap on the main preview canvas (#view):
+
+     - pinch (2 fingers)  -> zoom the preview in/out (0.5x .. 3x)
+     - double tap          -> toggle between fit and 2x zoom
+     - horizontal swipe    -> seek the timeline (with a live HUD)
+     - vertical swipe      -> change the visualizer volume
+
+   Implementation notes:
+     - the zoom is applied as a CSS transform on the canvas, so the render
+       pipeline is untouched: the frame is still rendered at the plan's
+       resolution and the GPU scales it. This keeps the 60 FPS budget.
+     - every handler is registered with `{ passive: false }` only where the
+       browser would otherwise scroll the page, and `preventDefault` is
+       called only after a gesture is actually recognised - otherwise a
+       normal vertical scroll on the canvas would be blocked.
+   ============================================================ */
+const TOUCH_ZOOM = { scale: 1, min: 0.5, max: 3, active: false };
+
+function applyTouchZoom() {
+  const c = $('view');
+  if (!c) return;
+  const s = TOUCH_ZOOM.scale;
+  if (Math.abs(s - 1) < 0.001) {
+    c.style.transform = '';
+    c.style.transformOrigin = 'center center';
+    return;
+  }
+  c.style.transformOrigin = 'center center';
+  c.style.transform = 'scale(' + s.toFixed(3) + ')';
+}
+
+function resetTouchZoom() {
+  TOUCH_ZOOM.scale = 1;
+  applyTouchZoom();
+}
+
+function initTouchGestures() {
+  const c = $('view');
+  const vp = $('viewport');
+  if (!c) return;
+
+  // --- pinch to zoom ---
+  let pinchStartDist = 0;
+  let pinchStartScale = 1;
+
+  const distOf = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy) || 1;
+  };
+
+  c.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      pinchStartDist = distOf(e.touches);
+      pinchStartScale = TOUCH_ZOOM.scale;
+      TOUCH_ZOOM.active = true;
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  c.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2 && TOUCH_ZOOM.active) {
+      const d = distOf(e.touches);
+      const k = d / (pinchStartDist || d);
+      TOUCH_ZOOM.scale = Math.max(TOUCH_ZOOM.min, Math.min(TOUCH_ZOOM.max, pinchStartScale * k));
+      applyTouchZoom();
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  c.addEventListener('touchend', (e) => {
+    if (TOUCH_ZOOM.active && e.touches.length < 2) {
+      TOUCH_ZOOM.active = false;
+      // a pinch that ends near 1x snaps back to fit
+      if (Math.abs(TOUCH_ZOOM.scale - 1) < 0.12) resetTouchZoom();
+    }
+  }, { passive: true });
+
+  // --- double tap: toggle fit / 2x ---
+  let lastTap = 0;
+  let lastTapX = 0;
+  let lastTapY = 0;
+  c.addEventListener('touchend', (e) => {
+    if (e.touches.length) return;
+    const now = Date.now();
+    const t = e.changedTouches && e.changedTouches[0];
+    if (!t) return;
+    const isDouble = now - lastTap < 300 && Math.abs(t.clientX - lastTapX) < 40 && Math.abs(t.clientY - lastTapY) < 40;
+    if (isDouble) {
+      TOUCH_ZOOM.scale = TOUCH_ZOOM.scale > 1.2 ? 1 : 2;
+      applyTouchZoom();
+      lastTap = 0;
+      e.preventDefault();
+    } else {
+      lastTap = now;
+      lastTapX = t.clientX;
+      lastTapY = t.clientY;
+    }
+  }, { passive: false });
+
+  // --- single-finger swipe: seek (horizontal) / volume (vertical) ---
+  let swipe = null;
+  c.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1 || TOUCH_ZOOM.active) { swipe = null; return; }
+    const t = e.touches[0];
+    swipe = { x: t.clientX, y: t.clientY, t0: Date.now(), moved: false };
+  }, { passive: true });
+
+  c.addEventListener('touchmove', (e) => {
+    if (!swipe || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - swipe.x;
+    const dy = t.clientY - swipe.y;
+    if (!swipe.moved && Math.abs(dx) < 12 && Math.abs(dy) < 12) return;
+    swipe.moved = true;
+    // a mostly-horizontal drag seeks; a mostly-vertical drag changes the volume
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      if (S.plan && S.plan.duration) {
+        const span = S.plan.duration;
+        const delta = (dx / Math.max(1, c.clientWidth)) * span;
+        const target = Math.max(0, Math.min(span - 0.05, (S.t || 0) + delta));
+        seek(target);
+        showMsg('⏱️ ' + J.fmtTime(target).slice(0, 5) + ' / ' + J.fmtTime(span).slice(0, 5));
+        clearTimeout(swipe.hudTimer);
+        swipe.hudTimer = setTimeout(() => showMsg(null), 700);
+      }
+      e.preventDefault();
+    } else if (window.AP && typeof AP.setVol === 'function') {
+      const vol = Math.max(0, Math.min(1, (AP.vol || 0) - dy / 220));
+      AP.setVol(vol, false);
+      showMsg('🔊 ' + Math.round(vol * 100) + '%');
+      clearTimeout(swipe.hudTimer);
+      swipe.hudTimer = setTimeout(() => showMsg(null), 700);
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  c.addEventListener('touchend', () => { swipe = null; }, { passive: true });
+
+  // --- desktop: ctrl+wheel zooms the preview too ---
+  c.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey) return;    // plain wheel scrolls the page as usual
+    e.preventDefault();
+    TOUCH_ZOOM.scale = Math.max(TOUCH_ZOOM.min, Math.min(TOUCH_ZOOM.max, TOUCH_ZOOM.scale * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
+    applyTouchZoom();
+  }, { passive: false });
+
+  // a re-plan resets the zoom - the new frame has a different layout
+  window.addEventListener('jizura:replan', resetTouchZoom);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initTouchGestures);
+} else {
+  initTouchGestures();
+}
+window.JizuraTouch = {
+  get scale() { return TOUCH_ZOOM.scale; },
+  reset: resetTouchZoom,
+  set: (v) => { TOUCH_ZOOM.scale = Math.max(TOUCH_ZOOM.min, Math.min(TOUCH_ZOOM.max, v)); applyTouchZoom(); },
+};
 // preview only: dotted outline of the centre that 中央を空ける keeps free (never in exports)
 function drawCenterGuide(ctx, k) {
   const P = S.plan, z = P.zones; if (!z) return;
@@ -47903,6 +48084,133 @@ async function resetAll() {
 }
 function updateEditBtns() { const u = $('btnUndoEdit'); if (u) u.disabled = !ED.undo.length; }
 
+/* ============================================================
+   PROJECT-SETTINGS UNDO / REDO  (PD stack)
+   ------------------------------------------------------------
+   The lyric edit history (ED) covers lyrics + line times. This stack
+   covers the *settings* side of the project: theme, aspect ratio, fx
+   sliders, timing (bpm / offset / speed), visualizer + AMV + camera
+   state and the auto-director config.
+
+   Design notes:
+   - a snapshot is the CONFIG ONLY (no media, no lyrics): it must stay
+     small, because 60 snapshots of a big payload would blow up the
+     memory and the autosave write.
+   - the media payload is stripped for the same reason the share link
+     strips it - undo should never resurrect a 20 MB Base64 image.
+   - the stack is separate from ED so that Ctrl+Z in a lyrics field
+     never rolls back the theme.
+   ============================================================ */
+const PD = { undo: [], redo: [] };
+const PD_MAX = 40;
+
+/* the settings that participate in undo - everything except media & lyrics */
+function pdSnapshot() {
+  const P = S.project || {};
+  return {
+    theme: P.theme || P.themeId || null,
+    aspect: P.aspect || '16:9',
+    fx: P.fx ? JSON.parse(JSON.stringify(P.fx)) : {},
+    timing: P.timing ? JSON.parse(JSON.stringify(P.timing)) : {},
+    visualizer: P.visualizer ? JSON.parse(JSON.stringify(P.visualizer)) : null,
+    amv: P.amv ? JSON.parse(JSON.stringify(P.amv)) : null,
+    autoDirector: P.autoDirector ? JSON.parse(JSON.stringify(P.autoDirector)) : null,
+    autoDrop: P.autoDrop ? JSON.parse(JSON.stringify(P.autoDrop)) : null,
+    overrides: P.overrides ? JSON.parse(JSON.stringify(P.overrides)) : {},
+    exportRange: P.exportRange ? JSON.parse(JSON.stringify(P.exportRange)) : null,
+  };
+}
+
+function pdPush() {
+  if (S.exporting) return;
+  let snap;
+  try { snap = JSON.stringify(pdSnapshot()); } catch (e) { return; }
+  if (PD.undo[PD.undo.length - 1] === snap) return;
+  PD.undo.push(snap);
+  if (PD.undo.length > PD_MAX) PD.undo.shift();
+  PD.redo = [];
+  updatePdBtns();
+}
+
+function pdRestore(snap) {
+  const P = S.project;
+  if (!P || !snap) return;
+  // theme
+  if (snap.theme) {
+    P.theme = snap.theme;
+    P.themeId = snap.theme;
+    if (typeof window.applyTheme === 'function') window.applyTheme(snap.theme);
+    document.querySelectorAll('.themeSel').forEach(el => { el.value = snap.theme; });
+  }
+  // aspect
+  if (snap.aspect) {
+    P.aspect = snap.aspect;
+    const sel = $('aspect'); if (sel) sel.value = snap.aspect;
+    const oSel = $('outAspect'); if (oSel) oSel.value = snap.aspect;
+    const eSel = $('eAspect'); if (eSel) eSel.value = snap.aspect;
+    if (typeof updateAspectQuickToggleUI === 'function') updateAspectQuickToggleUI();
+    if (typeof fitCanvas === 'function') fitCanvas();
+  }
+  // fx + timing
+  if (snap.fx) {
+    P.fx = JSON.parse(JSON.stringify(snap.fx));
+    const minInp = document.getElementById('fx_decor_min');
+    if (minInp && snap.fx.decorMin != null) minInp.value = snap.fx.decorMin;
+    const maxInp = document.getElementById('fx_decor_max');
+    if (maxInp && snap.fx.decorMax != null) maxInp.value = snap.fx.decorMax;
+  }
+  if (snap.timing) P.timing = JSON.parse(JSON.stringify(snap.timing));
+  // visualizer
+  if (snap.visualizer && window.AudioVisualizerAPI) {
+    if (snap.visualizer.enabled) window.AudioVisualizerAPI.enable(snap.visualizer.style);
+    else window.AudioVisualizerAPI.disable();
+    if (snap.visualizer.style) window.AudioVisualizerAPI.setStyle(snap.visualizer.style);
+    if (snap.visualizer.colorMode && typeof window.AudioVisualizerAPI.setColorMode === 'function') {
+      window.AudioVisualizerAPI.setColorMode(snap.visualizer.colorMode);
+    }
+  }
+  // AMV assets + camera + post filters
+  if (snap.amv && typeof window.__applyAMVState === 'function') {
+    window.__applyAMVState(JSON.parse(JSON.stringify(snap.amv)));
+  }
+  // auto director / auto drop
+  if (snap.autoDirector && window.AutoDirectorAPI && typeof window.AutoDirectorAPI.applyConfig === 'function') {
+    window.AutoDirectorAPI.applyConfig(snap.autoDirector);
+  }
+  if (snap.autoDrop && window.SmartSectionAPI && typeof window.SmartSectionAPI.applyConfig === 'function') {
+    window.SmartSectionAPI.applyConfig(snap.autoDrop);
+  }
+  // per-line overrides + export range
+  if (snap.overrides) P.overrides = JSON.parse(JSON.stringify(snap.overrides));
+  if ('exportRange' in snap) P.exportRange = snap.exportRange ? JSON.parse(JSON.stringify(snap.exportRange)) : null;
+}
+
+function pdGo(d) {
+  const from = d < 0 ? PD.undo : PD.redo, to = d < 0 ? PD.redo : PD.undo;
+  if (!from.length) return;
+  const o = JSON.parse(from.pop());
+  to.push(JSON.stringify(pdSnapshot()));
+  pdRestore(o);
+  syncUI(); replan(); commit(); flushSave(); updatePdBtns();
+  if (window.S) window.S.need = true;
+  toast(d < 0 ? '↩️ Đã hoàn tác cài đặt' : '↪️ Đã làm lại cài đặt');
+}
+
+function updatePdBtns() {
+  const u = $('btnUndoSettings'); if (u) u.disabled = !PD.undo.length;
+  const r = $('btnRedoSettings'); if (r) r.disabled = !PD.redo.length;
+}
+
+// The public API - other parts of the app call this before mutating a setting.
+window.JizuraUndo = {
+  push: pdPush,
+  undo: () => pdGo(-1),
+  redo: () => pdGo(1),
+  canUndo: () => PD.undo.length > 0,
+  canRedo: () => PD.redo.length > 0,
+  clear: () => { PD.undo = []; PD.redo = []; updatePdBtns(); },
+};
+
 /* ---------------- 書き出す範囲（選んだdòngだけ） ---------------- */
 function exportRangeLines() {
   const r = S.project.exportRange, n = S.plan ? S.plan.lines.length : 0;
@@ -48075,6 +48383,10 @@ function remember() {            // call before changing the look: makes sure th
   const s = lookSnap();
   if (H.i >= 0 && H.list[H.i] === s) return;
   H.list = H.list.slice(0, H.i + 1); H.list.push(s); H.i = H.list.length - 1;
+  // The look history is a *browsing* stack (◀ ▶). The settings undo stack
+  // (PD) is the *editing* stack (Ctrl+Alt+Z) - it must capture the state
+  // BEFORE the change, so it is pushed here, at the same call sites.
+  if (typeof pdPush === 'function') pdPush();
 }
 function commit() {              // call after changing the look
   const s = lookSnap();
@@ -48449,7 +48761,19 @@ function renderFx() {
       + `<button type="button" class="icon ghost lk pro-only" data-lk="${k}" aria-pressed="${lk}" title="${lk ? LOCK_TITLE_OFF : LOCK_TITLE_ON}">${ICON.lock}</button>`;
     const inp = row.querySelector('input'), out = row.querySelector('output');
     row.querySelector('.lk').addEventListener('click', () => toggleParamLock(k));
+    // The settings undo stack must capture the state BEFORE the gesture, not
+    // on every `input` event - dragging a slider fires dozens of them and
+    // would flood the stack with near-identical snapshots.
+    let gestureCaptured = false;
+    const captureGesture = () => {
+      if (gestureCaptured) return;
+      gestureCaptured = true;
+      if (typeof pdPush === 'function') pdPush();
+    };
+    inp.addEventListener('pointerdown', captureGesture);
+    inp.addEventListener('keydown', captureGesture);
     inp.addEventListener('input', () => { S.project.fx[k] = +inp.value; S.project.mood = null; out.textContent = Math.round(inp.value * 100); replanSoon(120); });
+    inp.addEventListener('change', () => { gestureCaptured = false; });
     box.appendChild(row);
     if (k === 'decor') {
       const minVal = S.project.fx.decorMin != null ? Math.round(+S.project.fx.decorMin) : 0;
@@ -49341,6 +49665,10 @@ function bind() {
   $('tlOut').addEventListener('click', () => tlZoom(1 / 1.5));
   $('tlFit').addEventListener('click', () => { TL.z = 1; TL.off = 0; drawTimeline(); });
   $('btnUndoEdit').addEventListener('click', () => edGo(-1));
+  const btnUndoSettings = $('btnUndoSettings');
+  if (btnUndoSettings) btnUndoSettings.addEventListener('click', () => pdGo(-1));
+  const btnRedoSettings = $('btnRedoSettings');
+  if (btnRedoSettings) btnRedoSettings.addEventListener('click', () => pdGo(1));
   $('tapBack').addEventListener('click', tapBack);
 
   // Timeline Toolbar wiring
@@ -49563,7 +49891,7 @@ function bind() {
     }
     catch (err) { showMsg('Không thể tải phông chữ'); setTimeout(() => showMsg(null), 2500); }
   });
-  ['outAspect', 'eAspect'].forEach(id => $(id).addEventListener('change', e => { S.project.aspect = e.target.value; syncOut(); replan(); codecNote(); }));
+  ['outAspect', 'eAspect'].forEach(id => $(id).addEventListener('change', e => { if (typeof pdPush === 'function') pdPush(); S.project.aspect = e.target.value; syncOut(); replan(); codecNote(); }));
   ['outRes', 'eRes'].forEach(id => $(id).addEventListener('change', e => { S.project.res = +e.target.value; syncOut(); autosave(); codecNote(); }));
   ['outFps', 'eFps'].forEach(id => $(id).addEventListener('change', e => { S.project.fps = +e.target.value; syncOut(); replan(); codecNote(); }));
   $('outQuality').addEventListener('change', e => { S.project.quality = e.target.value; autosave(); });
@@ -49663,6 +49991,7 @@ function bind() {
   const bTitle = $('btnTitleCaseLyrics'); if (bTitle) bTitle.addEventListener('click', titleCaseLyrics);
   const bSplit = $('btnSplitLongLyrics'); if (bSplit) bSplit.addEventListener('click', splitLongLyrics);
   document.querySelectorAll('.themeSel').forEach(el => el.addEventListener('change', () => {
+    if (typeof pdPush === 'function') pdPush();
     S.project.themeId = J.THEMES[el.value] ? el.value : null;
     document.querySelectorAll('.themeSel').forEach(x => { x.value = el.value; });
     flushSave();
@@ -49939,6 +50268,158 @@ function bind() {
   }
 
   window.__openProjectVault = openProjectVault;
+
+  /* ============================================================
+     PROJECT SHARE LINK  (collab / URL sharing)
+     ------------------------------------------------------------
+     A share link packs the project CONFIG into the URL fragment
+     (`#p=<base64url>`), so the payload never hits a server - it stays
+     in the browser and in the link itself.
+
+     Design notes:
+     - base64url (A-Z a-z 0-9 - _) so the fragment survives copy/paste
+       into chat apps that mangle `+` and `/`.
+     - the media payload (Base64 images + audio) is STRIPPED: a share link
+       must stay short enough to paste into a message. The project file
+       export (`.jizura.json`) is the way to move media around.
+     - the payload is versioned (`v: 1`) so a future format change can be
+       detected instead of silently mis-parsed.
+     ============================================================ */
+  const SHARE_VERSION = 1;
+
+  function b64urlEncode(str) {
+    // UTF-8 safe: encode to bytes first, then base64.
+    const bytes = new TextEncoder().encode(str);
+    let bin = '';
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function b64urlDecode(str) {
+    let s = String(str).replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    const bin = atob(s);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  function buildSharePayload() {
+    collectProjectState();
+    const src = S.project || {};
+    // strip the heavy media payload - a share link must stay paste-able
+    const cfg = JSON.parse(JSON.stringify(src));
+    if (cfg.media) {
+      delete cfg.media.character;
+      delete cfg.media.character2;
+      delete cfg.media.background;
+      delete cfg.media.audio;
+      delete cfg.media.dataUrl;
+    }
+    const payload = {
+      v: SHARE_VERSION,
+      t: cfg.title || '',
+      p: cfg,
+    };
+    return JSON.stringify(payload);
+  }
+
+  function makeShareLink() {
+    const json = buildSharePayload();
+    const enc = b64urlEncode(json);
+    const base = location.href.split('#')[0];
+    return base + '#p=' + enc;
+  }
+
+  function applySharePayload(json) {
+    let payload;
+    try { payload = JSON.parse(json); } catch (e) { throw new Error('Link chia sẻ không hợp lệ'); }
+    if (!payload || typeof payload !== 'object') throw new Error('Link chia sẻ không hợp lệ');
+    if (payload.v !== SHARE_VERSION) throw new Error('Phiên bản link chia sẻ không được hỗ trợ');
+    if (!payload.p || typeof payload.p !== 'object') throw new Error('Link chia sẻ không có dữ liệu dự án');
+    applyFullProject(payload.p, S.plan && S.plan.beats ? S.plan.beats.slice() : undefined);
+    return payload;
+  }
+
+  function readShareFromLocation() {
+    const h = location.hash || '';
+    const m = h.match(/[#&]p=([^&]+)/);
+    if (!m) return null;
+    try { return b64urlDecode(m[1]); } catch (e) { return null; }
+  }
+
+  // --- UI wiring -------------------------------------------------------
+  const shareBox = $('shareLinkBox');
+  const shareInput = $('shareLinkInput');
+  const btnShare = $('btnShareLink');
+  const btnCopyShare = $('btnCopyShareLink');
+  const shareNote = $('shareLinkNote');
+
+  if (btnShare) {
+    btnShare.addEventListener('click', () => {
+      try {
+        const link = makeShareLink();
+        if (shareBox) shareBox.hidden = false;
+        if (shareInput) { shareInput.value = link; shareInput.focus(); shareInput.select(); }
+        if (shareNote) {
+          const kb = (link.length / 1024).toFixed(1);
+          shareNote.textContent = `Liên kết dài ${kb} KB — chứa cấu hình dự án (kỹ thuật, theme, camera, visualizer, lời, timeline), không chứa media nặng.`;
+        }
+        toast('🔗 Đã tạo liên kết chia sẻ!');
+      } catch (err) {
+        toast('Không tạo được link chia sẻ: ' + err.message);
+      }
+    });
+  }
+
+  if (btnCopyShare) {
+    btnCopyShare.addEventListener('click', async () => {
+      if (!shareInput || !shareInput.value) return;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareInput.value);
+        } else {
+          shareInput.select();
+          document.execCommand('copy');
+        }
+        toast('📋 Đã sao chép liên kết!');
+      } catch (e) {
+        toast('Không sao chép được - hãy bấm vào ô và Ctrl+C');
+      }
+    });
+  }
+
+  if (shareInput) {
+    shareInput.addEventListener('click', () => { shareInput.focus(); shareInput.select(); });
+  }
+
+  // Expose the API for the console / automation.
+  window.JizuraShare = {
+    makeLink: makeShareLink,
+    applyFromLink: (link) => {
+      const m = String(link).match(/[#&]p=([^&]+)/);
+      if (!m) throw new Error('Link không chứa dữ liệu chia sẻ');
+      return applySharePayload(b64urlDecode(m[1]));
+    },
+    readFromLocation: readShareFromLocation,
+    VERSION: SHARE_VERSION,
+  };
+
+  // On boot: if the URL carries a share payload, offer to load it.
+  window.addEventListener('load', () => {
+    const json = readShareFromLocation();
+    if (!json) return;
+    try {
+      const payload = JSON.parse(json);
+      const title = (payload && payload.t) || 'dự án được chia sẻ';
+      if (window.confirm(`🔗 Mở dự án được chia sẻ "${title}"?\n\n(Chọn Hủy để giữ dự án hiện tại)`)) {
+        applySharePayload(json);
+        toast('🔗 Đã nạp dự án từ liên kết chia sẻ!');
+      }
+      // clean the fragment so a reload does not re-prompt
+      history.replaceState(null, '', location.href.split('#')[0]);
+    } catch (e) {}
+  });
 
   const btnOpenVault = $('btnOpenVault');
   if (btnOpenVault) btnOpenVault.addEventListener('click', openProjectVault);
@@ -50240,6 +50721,10 @@ function bind() {
       if (S.tap && e.code === 'Tab' && !typing) { e.preventDefault(); tapCut(); return; }
       if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ' && !typing && !S.tap) { e.preventDefault(); edGo(e.shiftKey ? 1 : -1); return; }
       if ((e.ctrlKey || e.metaKey) && e.code === 'KeyY' && !typing && !S.tap) { e.preventDefault(); edGo(1); return; }
+      // Project-SETTINGS undo/redo. These use Ctrl+Alt+Z / Ctrl+Alt+Y so they
+      // never fight with the lyric history over Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z.
+      if ((e.ctrlKey || e.metaKey) && e.altKey && e.code === 'KeyZ' && !typing && !S.tap) { e.preventDefault(); pdGo(-1); return; }
+      if ((e.ctrlKey || e.metaKey) && e.altKey && e.code === 'KeyY' && !typing && !S.tap) { e.preventDefault(); pdGo(1); return; }
       const isDlgOpen = (id) => { const el = $(id); return el && el.open; };
       if (typing || isDlgOpen('termsDlg') || isDlgOpen('resetDlg') || isDlgOpen('helpDlg') || isDlgOpen('vaultDlg')) return;
       const syncModal = document.getElementById('lyricSyncModal');

@@ -1,0 +1,16 @@
+---
+description: Notify Muse (via Tailscale) when an agent task is finished
+alwaysApply: true
+---
+
+When you have FULLY completed the user's task (all edits done, no
+questions pending), run this terminal command as your very last step:
+
+C:\cursor-notify\done.bat "<one short line summarising what was done>"
+
+Rules:
+- Run it exactly once, only at the very end, never mid-task.
+- If the task failed or you are blocked, run it anyway with the
+  summary starting with "BLOCKED:" or "FAILED:".
+- When you START a long task, first run:
+  C:\cursor-notify\running.bat "<short task name>"
